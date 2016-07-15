@@ -37,11 +37,11 @@ type Controller struct {
 
 // ControllerInterface is an interface to uniform all controller handler.
 type ControllerInterface interface {
-	Init(controllerName, actionName string, app interface{})
+	Init(ni *Netinfo, controllerName, actionName string, app interface{})
 	Before()
 	After()
-	GetService() error
-	GetDao() string
+	GetService()
+	GetDao()
 }
 
 // Init generates default values of controller operations.
@@ -52,7 +52,7 @@ func (c *Controller) Init(ni *Netinfo, controllerName, actionName string, app in
 	c.ni = ni
 	c.TplExt = "html"
 	c.AppController = app
-	c.Data = ni.Input.Data()
+	//c.Data = ni.Input.Data()
 }
 
 // Prepare runs after Init before request function execution.
@@ -60,3 +60,9 @@ func (c *Controller) Before() {}
 
 // Finish runs after request function execution.
 func (c *Controller) After() {}
+
+// Prepare runs after Init before request function execution.
+func (c *Controller) GetService() {}
+
+// Finish runs after request function execution.
+func (c *Controller) GetDao() {}

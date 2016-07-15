@@ -20,12 +20,18 @@
 
 package cellgo
 
+import (
+	"fmt"
+)
+
 // Version number of the cellgo.
 const VERSION = "0.0.1"
 
 // Run cellgo framework.
 func Run() {
+	fmt.Println("Cellgo Version Runing:", VERSION)
 	initRawData()
+	fmt.Println("Cellgo RawData Runing...")
 	CellCore.Run()
 }
 

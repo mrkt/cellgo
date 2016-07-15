@@ -20,6 +20,11 @@
 
 package cellgo
 
+import (
+	"fmt"
+	"net/http"
+)
+
 var (
 	// CellCore is an core instance
 	CellCore *Core
@@ -34,17 +39,33 @@ type Core struct {
 	Handlers *ControllerRegister
 	Server   *http.Server
 }
+type Mux struct {
+}
+
+func (p *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		CellCore.Handlers.workHTTP(w, r)
+		return
+	}
+	http.NotFound(w, r)
+	return
+}
 
 // NewCore returns a new cellgo core.
 func NewCore() *Core {
 	cr := NewControllerRegister()
 	core := &Core{Handlers: cr, Server: &http.Server{}}
-	return Core
+	return core
 }
 
 // Run cellgo core.
 func (core *Core) Run() {
-	//Listening.... && from config
-	//loop:
-	//		Handlers.routers
+	fmt.Println("Cellgo Core Runing...")
+	mux := &Mux{}
+	http.ListenAndServe(":9090", mux)
+}
+
+func (core *Core) RegisterController(title string, c ControllerInterface) *Core {
+	core.Handlers.Add(title, c)
+	return core
 }
