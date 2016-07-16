@@ -21,7 +21,6 @@
 package cellgo
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -39,15 +38,9 @@ type Core struct {
 	Handlers *ControllerRegister
 	Server   *http.Server
 }
-type Mux struct {
-}
 
-func (p *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" {
-		CellCore.Handlers.workHTTP(w, r)
-		return
-	}
-	http.NotFound(w, r)
+func defalutHandler(w http.ResponseWriter, r *http.Request) {
+	CellCore.Handlers.workHTTP(w, r)
 	return
 }
 
@@ -60,12 +53,14 @@ func NewCore() *Core {
 
 // Run cellgo core.
 func (core *Core) Run() {
-	fmt.Println("Cellgo Core Runing...")
-	mux := &Mux{}
-	http.ListenAndServe(":9090", mux)
+	http.Handle("/images/", http.FileServer(http.Dir("static")))
+	http.Handle("/js/", http.FileServer(http.Dir("static")))
+	http.Handle("/css/", http.FileServer(http.Dir("static")))
+	http.HandleFunc("/", defalutHandler)
+	http.ListenAndServe(":80", nil)
 }
 
-func (core *Core) RegisterController(title string, c ControllerInterface) *Core {
-	core.Handlers.Add(title, c)
+func (core *Core) RegisterController(title string, c ControllerInterface, param []string) *Core {
+	core.Handlers.Add(title, c, param)
 	return core
 }

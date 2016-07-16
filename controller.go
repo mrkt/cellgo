@@ -20,12 +20,19 @@
 
 package cellgo
 
+import (
+	"html/template"
+	"log"
+	"path"
+)
+
 type Controller struct {
 	// NetInfo data
-	ni   *Netinfo
+	Ni   *Netinfo
 	Data map[interface{}]interface{}
 
 	// template data
+	TplDir  string
 	TplName string
 	TplExt  string
 
@@ -42,6 +49,7 @@ type ControllerInterface interface {
 	After()
 	GetService()
 	GetDao()
+	Display() error
 }
 
 // Init generates default values of controller operations.
@@ -49,10 +57,11 @@ func (c *Controller) Init(ni *Netinfo, controllerName, actionName string, app in
 	c.TplName = ""
 	c.controllerName = controllerName
 	c.actionName = actionName
-	c.ni = ni
+	c.Ni = ni
 	c.TplExt = "html"
+	c.TplDir = "template"
 	c.AppController = app
-	//c.Data = ni.Input.Data()
+	c.Data = ni.Input.Data()
 }
 
 // Prepare runs after Init before request function execution.
@@ -66,3 +75,22 @@ func (c *Controller) GetService() {}
 
 // Finish runs after request function execution.
 func (c *Controller) GetDao() {}
+
+func (c *Controller) Display() error {
+	if c.TplName == "" {
+		c.TplName = c.Ni.Request.Method + "." + c.TplExt
+	}
+	t, err := template.ParseFiles(path.Join(c.TplDir, c.TplName))
+	if err != nil {
+		log.Println("template ParseFiles err:", err)
+		return err
+	}
+
+	err = t.Execute(c.Ni.Response, c.Data)
+	if err != nil {
+		log.Println("template Execute err:", err)
+		return err
+	}
+
+	return nil
+}

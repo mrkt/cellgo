@@ -28,10 +28,12 @@ import (
 )
 
 // NewContext return the Context with Input and Output
-func NewNetInfo() *Netinfo {
+func NewNetInfo(w http.ResponseWriter, r *http.Request) *Netinfo {
 	return &Netinfo{
-		Input:  NewInput(),
-		Output: NewOutput(),
+		Response: w,
+		Request:  r,
+		Input:    NewInput(),
+		Output:   NewOutput(),
 	}
 }
 

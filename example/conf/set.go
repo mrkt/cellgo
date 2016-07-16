@@ -7,5 +7,5 @@ import (
 )
 
 func SetController() {
-	cellgo.CellCore.RegisterController("user", &controllers.UserController{})
+	cellgo.CellCore.RegisterController("user", &controllers.UserController{}, []string{"Run", "Add"})
 }

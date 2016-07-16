@@ -29,6 +29,7 @@ import (
 type controllerInfo struct {
 	controllerTitle string
 	controllerType  reflect.Type
+	param           []string
 }
 
 type ControllerRegister struct {
@@ -41,11 +42,12 @@ func NewControllerRegister() *ControllerRegister {
 	return cr
 }
 
-func (p *ControllerRegister) Add(title string, c ControllerInterface) {
+func (p *ControllerRegister) Add(title string, c ControllerInterface, fc []string) {
 	info := &controllerInfo{}
 	t := reflect.Indirect(reflect.ValueOf(c)).Type()
 	info.controllerType = t
 	info.controllerTitle = title
+	info.param = fc
 	p.controllers = append(p.controllers, info)
 }
 
@@ -53,30 +55,39 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm() //解析参数，默认是不会解析的
 	//M := r.Form["m"]
 	if c, a := strings.Join(r.Form["c"], ""), strings.Join(r.Form["a"], ""); c != "" && a != "" {
-		var getTtile string
+		var getTitle string
 		var getType reflect.Type
+		var getParam string
 
 		//find a matching controller/action
 		for _, cs := range p.controllers {
 			if cs.controllerTitle == c {
-				getTtile = cs.controllerTitle
+				for _, pr := range cs.param {
+					if p.IndexToUpper(a) == pr {
+						getParam = pr
+					}
+				}
+				if getParam == "" {
+					goto over
+				}
+				getTitle = cs.controllerTitle
 				getType = cs.controllerType
 				break
 			}
 		}
-		if getTtile != "" {
+		if getTitle != "" {
 			//Invoke the request handler
 			vc := reflect.New(getType)
 			init := vc.MethodByName("Init")
 			in := make([]reflect.Value, 4)
-			ct := &Netinfo{Response: w, Request: r}
+			ct := NewNetInfo(w, r)
 			in[0] = reflect.ValueOf(ct)
-			in[1] = reflect.ValueOf(getTtile)
+			in[1] = reflect.ValueOf(getTitle)
 			in[2] = reflect.ValueOf(a)
 			in[3] = reflect.ValueOf(p.Coredrive)
 			init.Call(in)
 			in = make([]reflect.Value, 0)
-			method := vc.MethodByName("before")
+			method := vc.MethodByName("Before")
 			method.Call(in)
 			/*if r.Method == "GET" {
 				method = vc.MethodByName("Get")
@@ -100,12 +111,26 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 				method = vc.MethodByName("Options")
 				method.Call(in)
 			}*/
-			method = vc.MethodByName(a)
+
+			method = vc.MethodByName(getParam)
+			method.Call(in)
+
+			method = vc.MethodByName("Display")
 			method.Call(in)
 
 			method = vc.MethodByName("After")
 			method.Call(in)
+			return
 		}
 	}
+over:
 	http.NotFound(w, r)
+}
+
+func (p *ControllerRegister) IndexToUpper(str string) string {
+	strlen := len(str)
+	index := strings.ToUpper(string([]byte(str)[0:1]))
+	prefix := string([]byte(str)[1:strlen])
+
+	return index + prefix
 }
