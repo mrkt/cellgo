@@ -30,6 +30,6 @@ Update
 
 Usage
 ------
-用法请参考example，持续更新中
+用法请参考[example](https://github.com/mrkt/cellgo/tree/master/example)
 
 测试访问地址: /?c=user&a=run
