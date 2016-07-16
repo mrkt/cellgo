@@ -21,8 +21,15 @@ Installation
 
 
 Update
-------
+
 
 更新CellGo使用"go get -u"命令
 
     go get -u github.com/mrkt/cellgo
+
+
+Usage
+------
+用法请参考example，持续更新中
+
+测试访问地址: /?c=user&a=run
