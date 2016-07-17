@@ -10,6 +10,10 @@ Features
 * 异步通讯,支持异步监控/推送
 * 线程路由- http/socket通信
 
+Demo
+------
+ ![image](https://github.com/mrkt/cellgo/pic/demo.png)![image](https://github.com/mrkt/cellgo/pic/demo.png)
+
 Installation
 ------------
 
@@ -33,3 +37,4 @@ Usage
 用法请参考[example](https://github.com/mrkt/cellgo/tree/master/example)
 
 测试访问地址: /?c=user&a=run
+
