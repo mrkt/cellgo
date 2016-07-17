@@ -1,5 +1,6 @@
 # CellGo
 ==========
+ ![image](https://raw.githubusercontent.com/mrkt/cellgo/master/pic/logo.png)
 细胞/CellGo框架是一款使用go语言开发的框架 （轻量级的Go Framework)
 
 Features
