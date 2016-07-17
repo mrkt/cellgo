@@ -12,7 +12,7 @@ Features
 
 Demo
 ------
- ![image](http://github.com/mrkt/cellgo/raw/master/pic/demo.png)
+ ![image](https://raw.githubusercontent.com/mrkt/cellgo/master/pic/demo.png)
 
 Installation
 ------------
