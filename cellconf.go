@@ -30,7 +30,10 @@ type Conf struct {
 }
 
 // Version number of the cellgo.
-const VERSION = "0.0.2"
+const (
+	VERSION  = "0.0.3"
+	LASTDATE = "July 19, 2016"
+)
 
 var (
 	// BConfig is the default config for Cellgo

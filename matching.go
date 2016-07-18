@@ -80,7 +80,12 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 			vc := reflect.New(getType)
 			init := vc.MethodByName("Init")
 			in := make([]reflect.Value, 4)
-			ct := NewNetInfo(w, r)
+			ct := NewNetInfo()
+			ct.Reset(w, r)
+			//Assignment parameter
+			for key, value := range r.Form {
+				ct.Input.SetParam(key, strings.Join(value, ""))
+			}
 			in[0] = reflect.ValueOf(ct)
 			in[1] = reflect.ValueOf(getTitle)
 			in[2] = reflect.ValueOf(a)

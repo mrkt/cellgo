@@ -21,6 +21,7 @@
 package cellgo
 
 import (
+	//"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -28,12 +29,10 @@ import (
 )
 
 // NewContext return the Context with Input and Output
-func NewNetInfo(w http.ResponseWriter, r *http.Request) *Netinfo {
+func NewNetInfo() *Netinfo {
 	return &Netinfo{
-		Response: w,
-		Request:  r,
-		Input:    NewInput(),
-		Output:   NewOutput(),
+		Input:  NewInput(),
+		Output: NewOutput(),
 	}
 }
 
@@ -180,6 +179,11 @@ func (input *CellInput) AcceptsXML() bool {
 // AcceptsJSON Checks if request accepts json response
 func (input *CellInput) AcceptsJSON() bool {
 	return acceptsJSONRegex.MatchString(input.Header("Accept"))
+}
+
+// UserAgent returns request client user agent string.
+func (input *CellInput) UserAgent() string {
+	return input.Header("User-Agent")
 }
 
 // ParamsLen return the length of the params
