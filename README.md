@@ -14,6 +14,7 @@ Features
 Demo
 ------
  ![image](https://raw.githubusercontent.com/mrkt/cellgo/master/pic/demo.png)
+ ![image](https://raw.githubusercontent.com/mrkt/cellgo/master/pic/demo2.png)
 
 Installation
 ------------
@@ -37,5 +38,5 @@ Usage
 ------
 用法请参考[example](https://github.com/mrkt/cellgo/tree/master/example)
 
-测试访问地址: /?c=user&a=run
-
+测试访问地址①: http://localhost/?c=user&a=run
+测试访问地址②:http://localhost/?c=user&a=add&username=tommy.jin&email=tommy.jin@aliyun.com
