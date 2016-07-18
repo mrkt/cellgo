@@ -90,6 +90,45 @@ func (input *CellInput) Reset(ni *Netinfo) {
 	input.RequestBody = []byte{}
 }
 
+// Protocol returns request protocol name, such as HTTP/1.1 .
+func (input *CellInput) Protocol() string {
+	return input.Netinfo.Request.Proto
+}
+
+// URI returns full request url with query string, fragment.
+func (input *CellInput) URI() string {
+	return input.Netinfo.Request.RequestURI
+}
+
+// URL returns request url path (without query string, fragment).
+func (input *CellInput) URL() string {
+	return input.Netinfo.Request.URL.Path
+}
+
+// Site returns base site url as scheme://domain type.
+func (input *CellInput) Site() string {
+	return input.Scheme() + "://" + input.Domain()
+}
+
+// Domain returns host name.
+// Alias of Host method.
+func (input *CellInput) Domain() string {
+	return input.Host()
+}
+
+// Host returns host name.
+// if no host info in request, return localhost.
+func (input *CellInput) Host() string {
+	if input.Netinfo.Request.Host != "" {
+		hostParts := strings.Split(input.Netinfo.Request.Host, ":")
+		if len(hostParts) > 0 {
+			return hostParts[0]
+		}
+		return input.Netinfo.Request.Host
+	}
+	return "localhost"
+}
+
 // Scheme returns request scheme as "http" or "https".
 func (input *CellInput) Scheme() string {
 	if input.Netinfo.Request.URL.Scheme != "" {

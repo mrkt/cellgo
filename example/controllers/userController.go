@@ -11,11 +11,15 @@ type UserController struct {
 func (this *UserController) Run() {
 	this.Data["Username"] = "tommy.jin"
 	this.Data["Email"] = "tommy.jin@aliyun.com"
+	this.Data["URI"] = this.Ni.Input.Site() + this.Ni.Input.URI()
 	this.TplName = "index.html"
 }
 
 func (this *UserController) Add() {
-	this.Data["Username"] = "tommy.jin"
-	this.Data["Email"] = "tommy.jin@aliyun.com"
+	username := this.Ni.Input.Param("username")
+	email := this.Ni.Input.Param("email")
+	this.Data["Username"] = username
+	this.Data["Email"] = email
+	this.Data["URI"] = this.Ni.Input.Site() + this.Ni.Input.URI()
 	this.TplName = "index.html"
 }
