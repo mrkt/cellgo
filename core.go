@@ -21,7 +21,10 @@
 package cellgo
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"time"
 )
 
 var (
@@ -53,12 +56,32 @@ func NewCore() *Core {
 
 // Run cellgo core.
 func (core *Core) Run() {
-	http.Handle("/images/", http.FileServer(http.Dir("static")))
-	http.Handle("/js/", http.FileServer(http.Dir("static")))
-	http.Handle("/css/", http.FileServer(http.Dir("static")))
-	http.HandleFunc("/", defalutHandler)
-	http.ListenAndServe(":80", nil)
+	core.RegisterHttp()
 }
+
+//register http service
+func (core *Core) RegisterHttp() {
+
+	for _, v := range CellConf.SiteConfig.StaticRouter {
+		http.Handle(v, http.FileServer(http.Dir(CellConf.SiteConfig.StaticDir)))
+	}
+	http.HandleFunc(CellConf.SiteConfig.Dynamic, defalutHandler)
+	server := http.Server{
+		Addr:        CellConf.Listen.HTTPAddr + ":" + fmt.Sprintf("%d", CellConf.Listen.HTTPPort),
+		Handler:     nil,
+		ReadTimeout: time.Duration(CellConf.Listen.ServerTimeOut) * time.Second,
+	}
+	err := server.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+//register https service
+func (core *Core) RegisterHttps() {}
+
+//register websocket service
+func (core *Core) RegisterWebsocket() {}
 
 func (core *Core) RegisterController(title string, c ControllerInterface, param []string) *Core {
 	core.Handlers.Add(title, c, param)

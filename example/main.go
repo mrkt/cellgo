@@ -2,7 +2,6 @@ package main
 
 import (
 	"conf"
-	"fmt"
 
 	"github.com/mrkt/cellgo"
 )
@@ -10,5 +9,4 @@ import (
 func main() {
 	conf.SetController()
 	cellgo.Run()
-	fmt.Println(cellgo.CellCore.Handlers)
 }

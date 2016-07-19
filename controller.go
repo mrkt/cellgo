@@ -58,8 +58,8 @@ func (c *Controller) Init(ni *Netinfo, controllerName, actionName string, app in
 	c.controllerName = controllerName
 	c.actionName = actionName
 	c.Ni = ni
-	c.TplExt = "html"
-	c.TplDir = "template"
+	c.TplExt = CellConf.SiteConfig.TemplateExt
+	c.TplDir = CellConf.SiteConfig.TemplatePath
 	c.AppController = app
 	c.Data = ni.Input.Data()
 }

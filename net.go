@@ -338,10 +338,15 @@ func NewOutput() *CellOutput {
 	return &CellOutput{}
 }
 
-// Reset init BeegoOutput
+// Reset init CellOutput
 func (output *CellOutput) Reset(ni *Netinfo) {
 	output.Netinfo = ni
 	output.Status = 0
+}
+
+// Header sets response header item string via given key.
+func (output *CellOutput) Header(key, val string) {
+	output.Netinfo.Response.Header().Set(key, val)
 }
 
 // SetStatus sets response status code.

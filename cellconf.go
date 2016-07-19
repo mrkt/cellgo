@@ -20,13 +20,40 @@
 
 package cellgo
 
-// Config is the main struct for BConfig
+// Conf is the main struct for Config
 type Conf struct {
-	NetName          string //Application name
-	ServerName       string
+	NetName    string //Net name
+	ServerName string
+	Listen
+	SiteConfig
+}
+
+// Listen holds for http/https/websocket related config
+type Listen struct {
+	ServerTimeOut int64
+	HTTPAddr      string //http  conn addr
+	HTTPPort      int    //http  conn Port
+	HTTPSAddr     string //https conn addr
+	HTTPSPort     int    //https conn Port
+	HTTPSCertFile string //https conn certfile
+	HTTPSKeyFile  string //https conn keyfile
+	WEBSOCKETAddr string //websocket conn Port
+	WEBSOCKETPort int    //websocket conn Port
+}
+
+// SiteConfig holds Site related config
+type SiteConfig struct {
+	AutoDisplay      bool
 	DefaultBeforeAct string
 	DefaultAfterAct  string
-	Listen           map[string]string
+	Dynamic          string
+	StaticDir        string
+	StaticRouter     []string
+	LabLeft          string
+	LabRight         string
+	TemplateExt      string
+	TemplatePath     string
+	//Session
 }
 
 // Version number of the cellgo.
@@ -36,17 +63,37 @@ const (
 )
 
 var (
-	// BConfig is the default config for Cellgo
+	// CellConf is the default config for Cellgo
 	CellConf *Conf
 )
 
 func init() {
 	CellConf = &Conf{
-		NetName:          "cellgo",
-		ServerName:       "CellgoService_" + VERSION,
-		DefaultBeforeAct: "Before",
-		DefaultAfterAct:  "After",
-		Listen:           map[string]string{},
+		NetName:    "cellgo",
+		ServerName: "CellgoService_" + VERSION,
+		Listen: Listen{
+			ServerTimeOut: 0,
+			HTTPAddr:      "",
+			HTTPPort:      80,
+			HTTPSAddr:     "",
+			HTTPSPort:     10443,
+			HTTPSCertFile: "",
+			HTTPSKeyFile:  "",
+			WEBSOCKETAddr: "",
+			WEBSOCKETPort: 8088,
+		},
+		SiteConfig: SiteConfig{
+			AutoDisplay:      true,
+			DefaultBeforeAct: "Before",
+			DefaultAfterAct:  "After",
+			Dynamic:          "/",
+			StaticDir:        "static",
+			StaticRouter:     []string{"/css/", "/js/", "/images/"},
+			LabLeft:          "{{",
+			LabRight:         "}}",
+			TemplateExt:      "html",
+			TemplatePath:     "template",
+		},
 	}
 
 }

@@ -120,11 +120,13 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 			method = vc.MethodByName(getParam)
 			method.Call(in)
 
-			method = vc.MethodByName("Display")
-			method.Call(in)
-
 			method = vc.MethodByName("After")
 			method.Call(in)
+
+			if CellConf.SiteConfig.AutoDisplay {
+				method = vc.MethodByName("Display")
+				method.Call(in)
+			}
 			return
 		}
 	}
