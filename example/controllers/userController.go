@@ -1,11 +1,18 @@
 package controllers
 
 import (
+	"library/service"
+
 	"github.com/mrkt/cellgo"
 )
 
 type UserController struct {
 	cellgo.Controller
+}
+
+func (this *UserController) Before() {
+	//test service & dao
+	this.GetService(&service.UserService{})
 }
 
 func (this *UserController) Run() {

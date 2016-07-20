@@ -24,6 +24,7 @@ import (
 	"html/template"
 	"log"
 	"path"
+	"reflect"
 )
 
 type Controller struct {
@@ -47,8 +48,8 @@ type ControllerInterface interface {
 	Init(ni *Netinfo, controllerName, actionName string, app interface{})
 	Before()
 	After()
-	GetService()
-	GetDao()
+	GetService(ServiceInterface)
+	GetDao(DaoInterface)
 	Display() error
 }
 
@@ -70,11 +71,24 @@ func (c *Controller) Before() {}
 // Finish runs after request function execution.
 func (c *Controller) After() {}
 
-// Prepare runs after Init before request function execution.
-func (c *Controller) GetService() {}
+//Service function execution.
+func (c *Controller) GetService(service ServiceInterface) {
+	getType := reflect.Indirect(reflect.ValueOf(service)).Type()
+	vs := reflect.New(getType)
+	in := make([]reflect.Value, 0)
+	method := vs.MethodByName("Test")
+	method.Call(in)
 
-// Finish runs after request function execution.
-func (c *Controller) GetDao() {}
+}
+
+//Dao function execution.
+func (c *Controller) GetDao(dao DaoInterface) {
+	getType := reflect.Indirect(reflect.ValueOf(dao)).Type()
+	vs := reflect.New(getType)
+	in := make([]reflect.Value, 0)
+	method := vs.MethodByName("Test")
+	method.Call(in)
+}
 
 func (c *Controller) Display() error {
 	if c.TplName == "" {
