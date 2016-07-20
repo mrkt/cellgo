@@ -44,3 +44,4 @@ Usage
 测试访问地址: 
 * http://localhost/?c=user&a=run
 * http://localhost/?c=user&a=add&username=tommy.jin&email=tommy.jin@aliyun.com
+
