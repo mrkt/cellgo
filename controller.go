@@ -41,6 +41,10 @@ type Controller struct {
 	controllerName string
 	actionName     string
 	AppController  interface{}
+
+	//service & dao
+	serviceType reflect.Type
+	daoType     reflect.Type
 }
 
 // ControllerInterface is an interface to uniform all controller handler.
@@ -50,6 +54,8 @@ type ControllerInterface interface {
 	After()
 	GetService(ServiceInterface)
 	GetDao(DaoInterface)
+	GetServiceFunc(string, ...interface{}) interface{}
+	GetDaoFunc(string, ...interface{}) interface{}
 	Display() error
 }
 
@@ -71,25 +77,64 @@ func (c *Controller) Before() {}
 // Finish runs after request function execution.
 func (c *Controller) After() {}
 
-//Service function execution.
+//Service type init.
 func (c *Controller) GetService(service ServiceInterface) {
-	getType := reflect.Indirect(reflect.ValueOf(service)).Type()
-	vs := reflect.New(getType)
-	in := make([]reflect.Value, 0)
-	method := vs.MethodByName("Test")
-	method.Call(in)
+	t := reflect.Indirect(reflect.ValueOf(service)).Type()
+	c.serviceType = t
+}
 
+//Dao type init.
+func (c *Controller) GetDao(dao DaoInterface) {
+	t := reflect.Indirect(reflect.ValueOf(dao)).Type()
+	c.daoType = t
+}
+
+//Service function execution.
+func (c *Controller) GetServiceFunc(f string, param ...interface{}) interface{} {
+	vs := reflect.New(c.serviceType)
+	//init before
+	in := make([]reflect.Value, 0)
+	before := vs.MethodByName("Before")
+	before.Call(in)
+	//init method
+	in = make([]reflect.Value, len(param))
+	for k, v := range param {
+		in[k] = reflect.ValueOf(v)
+	}
+	method := vs.MethodByName(f)
+	res := method.Call(in)
+
+	//init after
+	in = make([]reflect.Value, 0)
+	after := vs.MethodByName("After")
+	after.Call(in)
+	return res[0].Interface()
 }
 
 //Dao function execution.
-func (c *Controller) GetDao(dao DaoInterface) {
-	getType := reflect.Indirect(reflect.ValueOf(dao)).Type()
-	vs := reflect.New(getType)
+func (c *Controller) GetDaoFunc(f string, param ...interface{}) interface{} {
+	vd := reflect.New(c.daoType)
+	//init before
 	in := make([]reflect.Value, 0)
-	method := vs.MethodByName("Test")
-	method.Call(in)
+	before := vd.MethodByName("Before")
+	before.Call(in)
+
+	//init method
+	in = make([]reflect.Value, len(param))
+	for k, v := range param {
+		in[k] = reflect.ValueOf(v)
+	}
+	method := vd.MethodByName(f)
+	res := method.Call(in)
+
+	//init after
+	in = make([]reflect.Value, 0)
+	after := vd.MethodByName("After")
+	after.Call(in)
+	return res[0].Interface()
 }
 
+//Display templates
 func (c *Controller) Display() error {
 	if c.TplName == "" {
 		c.TplName = c.Ni.Request.Method + "." + c.TplExt

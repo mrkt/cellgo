@@ -11,13 +11,15 @@ type UserController struct {
 }
 
 func (this *UserController) Before() {
-	//test service & dao
+	//init service
 	this.GetService(&service.UserService{})
 }
 
 func (this *UserController) Run() {
-	this.Data["Username"] = "tommy.jin"
-	this.Data["Email"] = "tommy.jin@aliyun.com"
+	//param1 funcName, param2 funcParam ...
+	userInfo := this.GetServiceFunc("GetUserInfo", "tommy").(map[string]string)
+	this.Data["Username"] = userInfo["Username"]
+	this.Data["Email"] = userInfo["Email"]
 	this.Data["URI"] = this.Ni.Input.Site() + this.Ni.Input.URI()
 	this.TplName = "index.html"
 }
