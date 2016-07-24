@@ -55,12 +55,14 @@ type SiteConfig struct {
 	LabRight          string
 	TemplateExt       string
 	TemplatePath      string
+	IsViewFilter      bool //Open html filter
+	IsUri             bool //Open rewrite path
 	//Session
 }
 
 // Version number of the cellgo.
 const (
-	VERSION  = "0.0.8"
+	VERSION  = "0.0.9"
 	LASTDATE = "July 25, 2016"
 )
 
@@ -97,6 +99,8 @@ func init() {
 			LabRight:          "}}",
 			TemplateExt:       "html",
 			TemplatePath:      "template",
+			IsViewFilter:      false,
+			IsUri:             false,
 		},
 	}
 

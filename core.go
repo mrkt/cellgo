@@ -44,8 +44,9 @@ type Core struct {
 }
 
 func (core *Core) defalutHandler(w http.ResponseWriter, r *http.Request) {
-	core.CheckParam(r)
-	CellCore.Handlers.workHTTP(w, r)
+	if core.CheckParam(w, r) {
+		CellCore.Handlers.workHTTP(w, r)
+	}
 	return
 }
 
@@ -81,15 +82,49 @@ func (core *Core) RegisterHttp() {
 
 //Check default parameters
 //From the configuration file options
-func (core *Core) CheckParam(r *http.Request) {
-
+func (core *Core) CheckParam(w http.ResponseWriter, r *http.Request) bool {
 	r.ParseForm() //Analytical parameters, the default is not resolved
+	//Split URL, the backslash separated
+	urlSlice := strings.Split(r.URL.Path, "/")
+	if CellConf.SiteConfig.IsUri { //Open rewrite path
+		switch len(urlSlice) {
+		case 2:
+			if urlSlice[1] == "" {
+				break
+			}
+			r.Form["c"] = []string{urlSlice[1]}
+		default:
+			var tempKey string
+			for k, url := range urlSlice {
+				if k > 0 {
+					if k == 1 {
+						r.Form["c"] = []string{url}
+					} else if k == 2 {
+						r.Form["a"] = []string{url}
+					} else {
+						if k%2 != 0 {
+							tempKey = url
+						} else {
+							r.Form[tempKey] = []string{url}
+						}
+					}
+				}
+			}
+		}
+	} else {
+		if urlSlice[1] != "" {
+			CellError.ErrMaps["404"].handler(w, r)
+			return false
+		}
+	}
+
 	if r.Form["c"] == nil {
 		r.Form["c"] = []string{strings.ToLower(CellConf.SiteConfig.DefaultController)} //default controller
 	}
 	if r.Form["a"] == nil {
 		r.Form["a"] = []string{strings.ToLower(CellConf.SiteConfig.DefaultAction)} //default action
 	}
+	return true
 }
 
 //register https service
