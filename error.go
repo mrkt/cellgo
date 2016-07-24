@@ -57,6 +57,7 @@ var (
 
 func init() {
 	CellError = &Error{ErrMaps: make(map[string]*errInfo, 10)}
+	CellError.registerHandlers()
 }
 
 // register Command and handle function

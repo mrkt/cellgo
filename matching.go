@@ -131,7 +131,8 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 over:
-	http.NotFound(w, r)
+	//http.NotFound(w, r)
+	CellError.ErrMaps["404"].handler(w, r)
 }
 
 func (p *ControllerRegister) IndexToUpper(str string) string {
