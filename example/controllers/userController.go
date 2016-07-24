@@ -20,15 +20,15 @@ func (this *UserController) Run() {
 	userInfo := this.GetServiceFunc("GetUserInfo", "tommy").(map[string]string)
 	this.Data["Username"] = userInfo["Username"]
 	this.Data["Email"] = userInfo["Email"]
-	this.Data["URI"] = this.Ni.Input.Site() + this.Ni.Input.URI()
+	this.Data["URI"] = this.Net.Input.Site() + this.Net.Input.URI()
 	this.TplName = "index.html"
 }
 
 func (this *UserController) Add() {
-	username := this.Ni.Input.Param("username")
-	email := this.Ni.Input.Param("email")
+	username := this.Net.Input.GetGP("username", true)
+	email := this.Net.Input.GetGP("email", true)
 	this.Data["Username"] = username
 	this.Data["Email"] = email
-	this.Data["URI"] = this.Ni.Input.Site() + this.Ni.Input.URI()
+	this.Data["URI"] = this.Net.Input.Site() + this.Net.Input.URI()
 	this.TplName = "index.html"
 }

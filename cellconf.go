@@ -58,8 +58,8 @@ type SiteConfig struct {
 
 // Version number of the cellgo.
 const (
-	VERSION  = "0.0.6"
-	LASTDATE = "July 23, 2016"
+	VERSION  = "0.0.7"
+	LASTDATE = "July 25, 2016"
 )
 
 var (

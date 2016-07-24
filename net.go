@@ -21,6 +21,7 @@
 package cellgo
 
 import (
+	"html/template"
 	//"fmt"
 	"net/http"
 	"regexp"
@@ -230,22 +231,34 @@ func (input *CellInput) ParamsLen() int {
 	return len(input.pnames)
 }
 
-// Param returns router param by a given key.
-func (input *CellInput) Param(key string) string {
+// GetGP returns router param by a given key.
+func (input *CellInput) GetGP(key string, isfilter bool) string {
+	var res string
 	for i, v := range input.pnames {
 		if v == key && i <= len(input.pvalues) {
-			return input.pvalues[i]
+			if isfilter {
+				res = template.HTMLEscapeString(input.pvalues[i])
+			} else {
+				res = input.pvalues[i]
+			}
+			return res
 		}
 	}
 	return ""
 }
 
 // Params returns the map[key]value.
-func (input *CellInput) Params() map[string]string {
+func (input *CellInput) GetGPs(isfilter bool) map[string]string {
 	m := make(map[string]string)
+	var tempVal string
 	for i, v := range input.pnames {
 		if i <= len(input.pvalues) {
-			m[v] = input.pvalues[i]
+			if isfilter {
+				tempVal = template.HTMLEscapeString(input.pvalues[i])
+			} else {
+				tempVal = input.pvalues[i]
+			}
+			m[v] = tempVal
 		}
 	}
 	return m
@@ -266,7 +279,7 @@ func (input *CellInput) SetParam(key, val string) {
 
 // Query returns input data item string by a given string.
 func (input *CellInput) Query(key string) string {
-	if val := input.Param(key); val != "" {
+	if val := input.GetGP(key, false); val != "" {
 		return val
 	}
 	if input.Netinfo.Request.Form == nil {

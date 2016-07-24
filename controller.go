@@ -29,7 +29,7 @@ import (
 
 type Controller struct {
 	// NetInfo data
-	Ni   *Netinfo
+	Net  *Netinfo
 	Data map[interface{}]interface{}
 
 	// template data
@@ -49,7 +49,7 @@ type Controller struct {
 
 // ControllerInterface is an interface to uniform all controller handler.
 type ControllerInterface interface {
-	Init(ni *Netinfo, controllerName, actionName string, app interface{})
+	Init(net *Netinfo, controllerName, actionName string, app interface{})
 	Before()
 	After()
 	GetService(ServiceInterface)
@@ -60,15 +60,15 @@ type ControllerInterface interface {
 }
 
 // Init generates default values of controller operations.
-func (c *Controller) Init(ni *Netinfo, controllerName, actionName string, app interface{}) {
+func (c *Controller) Init(net *Netinfo, controllerName, actionName string, app interface{}) {
 	c.TplName = ""
 	c.controllerName = controllerName
 	c.actionName = actionName
-	c.Ni = ni
+	c.Net = net
 	c.TplExt = CellConf.SiteConfig.TemplateExt
 	c.TplDir = CellConf.SiteConfig.TemplatePath
 	c.AppController = app
-	c.Data = ni.Input.Data()
+	c.Data = net.Input.Data()
 }
 
 // Prepare runs after Init before request function execution.
@@ -137,7 +137,7 @@ func (c *Controller) GetDaoFunc(f string, param ...interface{}) interface{} {
 //Display templates
 func (c *Controller) Display() error {
 	if c.TplName == "" {
-		c.TplName = c.Ni.Request.Method + "." + c.TplExt
+		c.TplName = c.Net.Request.Method + "." + c.TplExt
 	}
 	t, err := template.ParseFiles(path.Join(c.TplDir, c.TplName))
 	if err != nil {
@@ -145,7 +145,7 @@ func (c *Controller) Display() error {
 		return err
 	}
 
-	err = t.Execute(c.Ni.Response, c.Data)
+	err = t.Execute(c.Net.Response, c.Data)
 	if err != nil {
 		log.Println("template Execute err:", err)
 		return err
