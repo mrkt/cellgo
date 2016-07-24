@@ -55,8 +55,8 @@ type SiteConfig struct {
 	LabRight          string
 	TemplateExt       string
 	TemplatePath      string
-	IsViewFilter      bool //Open html filter
-	IsUri             bool //Open rewrite path
+	IsViewFilter      bool //Open html filter * 1. 对多人合作，安全性可控比较差的项目建议开启 2. 对HTML进行转义，预防XSS攻击
+	IsUri             bool //Open rewrite path: /user/add/username/jack
 	//Session
 }
 
