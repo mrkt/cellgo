@@ -43,22 +43,24 @@ type Listen struct {
 
 // SiteConfig holds Site related config
 type SiteConfig struct {
-	AutoDisplay      bool
-	DefaultBeforeAct string
-	DefaultAfterAct  string
-	Dynamic          string
-	StaticDir        string
-	StaticRouter     []string
-	LabLeft          string
-	LabRight         string
-	TemplateExt      string
-	TemplatePath     string
+	AutoDisplay       bool
+	DefaultBeforeAct  string
+	DefaultAfterAct   string
+	DefaultController string
+	DefaultAction     string
+	Dynamic           string
+	StaticDir         string
+	StaticRouter      []string
+	LabLeft           string
+	LabRight          string
+	TemplateExt       string
+	TemplatePath      string
 	//Session
 }
 
 // Version number of the cellgo.
 const (
-	VERSION  = "0.0.7"
+	VERSION  = "0.0.8"
 	LASTDATE = "July 25, 2016"
 )
 
@@ -83,16 +85,18 @@ func init() {
 			WEBSOCKETPort: 8088,
 		},
 		SiteConfig: SiteConfig{
-			AutoDisplay:      true,
-			DefaultBeforeAct: "Before",
-			DefaultAfterAct:  "After",
-			Dynamic:          "/",
-			StaticDir:        "static",
-			StaticRouter:     []string{"/css/", "/js/", "/images/"},
-			LabLeft:          "{{",
-			LabRight:         "}}",
-			TemplateExt:      "html",
-			TemplatePath:     "template",
+			AutoDisplay:       true,
+			DefaultBeforeAct:  "Before",
+			DefaultAfterAct:   "After",
+			DefaultController: "Index",
+			DefaultAction:     "Run",
+			Dynamic:           "/",
+			StaticDir:         "static",
+			StaticRouter:      []string{"/css/", "/js/", "/images/"},
+			LabLeft:           "{{",
+			LabRight:          "}}",
+			TemplateExt:       "html",
+			TemplatePath:      "template",
 		},
 	}
 

@@ -8,4 +8,5 @@ import (
 
 func SetController() {
 	cellgo.CellCore.RegisterController("user", &controllers.UserController{}, []string{"Run", "Add"})
+	cellgo.CellCore.RegisterController("index", &controllers.IndexController{}, []string{"Run"})
 }

@@ -52,7 +52,6 @@ func (p *ControllerRegister) Add(title string, c ControllerInterface, fc []strin
 }
 
 func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm() //解析参数，默认是不会解析的
 	//M := r.Form["m"]
 	if c, a := strings.Join(r.Form["c"], ""), strings.Join(r.Form["a"], ""); c != "" && a != "" {
 		var getTitle string

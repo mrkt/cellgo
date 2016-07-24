@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -42,7 +43,8 @@ type Core struct {
 	Server   *http.Server
 }
 
-func defalutHandler(w http.ResponseWriter, r *http.Request) {
+func (core *Core) defalutHandler(w http.ResponseWriter, r *http.Request) {
+	core.CheckParam(r)
 	CellCore.Handlers.workHTTP(w, r)
 	return
 }
@@ -65,7 +67,7 @@ func (core *Core) RegisterHttp() {
 	for _, v := range CellConf.SiteConfig.StaticRouter {
 		http.Handle(v, http.FileServer(http.Dir(CellConf.SiteConfig.StaticDir)))
 	}
-	http.HandleFunc(CellConf.SiteConfig.Dynamic, defalutHandler)
+	http.HandleFunc(CellConf.SiteConfig.Dynamic, core.defalutHandler)
 	server := http.Server{
 		Addr:        CellConf.Listen.HTTPAddr + ":" + fmt.Sprintf("%d", CellConf.Listen.HTTPPort),
 		Handler:     nil,
@@ -74,6 +76,19 @@ func (core *Core) RegisterHttp() {
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+//Check default parameters
+//From the configuration file options
+func (core *Core) CheckParam(r *http.Request) {
+
+	r.ParseForm() //Analytical parameters, the default is not resolved
+	if r.Form["c"] == nil {
+		r.Form["c"] = []string{strings.ToLower(CellConf.SiteConfig.DefaultController)} //default controller
+	}
+	if r.Form["a"] == nil {
+		r.Form["a"] = []string{strings.ToLower(CellConf.SiteConfig.DefaultAction)} //default action
 	}
 }
 
