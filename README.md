@@ -42,6 +42,13 @@ Usage
 用法请参考[example](https://github.com/mrkt/cellgo/tree/master/example)
 
 测试访问地址: 
+* http://localhost/
 * http://localhost/?c=user&a=run
 * http://localhost/?c=user&a=add&username=tommy.jin&email=tommy.jin@aliyun.com
+
+修改conf中的 [IsUri] 为true开启静态路由
+* http://localhost/
+* http://localhost/user/run
+* http://localhost/user/add/username/tommy.jin/email/tommy.jin@aliyun.com
+
 
