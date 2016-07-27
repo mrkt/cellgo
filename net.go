@@ -35,6 +35,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/mrkt/cellgo/session"
 )
 
 // NewContext return the Context with Input and Output
@@ -116,8 +118,8 @@ var (
 )
 
 type CellInput struct {
-	Netinfo *Netinfo
-	//session!
+	Netinfo     *Netinfo
+	Session     session.Object
 	pnames      []string
 	pvalues     []string
 	data        map[interface{}]interface{}

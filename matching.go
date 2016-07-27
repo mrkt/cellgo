@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 type controllerInfo struct {
@@ -35,10 +36,14 @@ type controllerInfo struct {
 type ControllerRegister struct {
 	controllers []*controllerInfo
 	Coredrive   *Core
+	pool        sync.Pool //池
 }
 
 func NewControllerRegister() *ControllerRegister {
 	cr := &ControllerRegister{}
+	cr.pool.New = func() interface{} {
+		return NewNetInfo()
+	}
 	return cr
 }
 
@@ -52,6 +57,23 @@ func (p *ControllerRegister) Add(title string, c ControllerInterface, fc []strin
 }
 
 func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
+	net := p.pool.Get().(*Netinfo)
+	net.Reset(w, r)
+	defer p.pool.Put(net) //销毁池
+	// session init
+	if CellConf.SiteConfig.SessionOn {
+		var err error
+		net.Input.Session, err = SESSION.SessionStart(w, r)
+		if err != nil {
+			CellError.ErrMaps["500"].handler(w, r)
+			return
+		}
+		/*defer func() {
+			if Netinfo.Input.Session != nil {
+				Netinfo.Input.Session.SessionRelease(rw)
+			}
+		}()*/
+	}
 	//M := r.Form["m"]
 	if c, a := strings.Join(r.Form["c"], ""), strings.Join(r.Form["a"], ""); c != "" && a != "" {
 		var getTitle string
@@ -79,13 +101,11 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 			vc := reflect.New(getType)
 			init := vc.MethodByName("Init")
 			in := make([]reflect.Value, 4)
-			ct := NewNetInfo()
-			ct.Reset(w, r)
 			//Assignment parameter
 			for key, value := range r.Form {
-				ct.Input.SetParam(key, strings.Join(value, ""))
+				net.Input.SetParam(key, strings.Join(value, ""))
 			}
-			in[0] = reflect.ValueOf(ct)
+			in[0] = reflect.ValueOf(net)
 			in[1] = reflect.ValueOf(getTitle)
 			in[2] = reflect.ValueOf(a)
 			in[3] = reflect.ValueOf(p.Coredrive)

@@ -26,16 +26,20 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/mrkt/cellgo/session"
 )
 
 var (
 	// CellCore is an core instance
 	CellCore *Core
+	SESSION  *session.Handle
 )
 
 func init() {
 	// create cellgo core
 	CellCore = NewCore()
+	RegisterSession()
 }
 
 type Core struct {
@@ -125,6 +129,12 @@ func (core *Core) CheckParam(w http.ResponseWriter, r *http.Request) bool {
 		r.Form["a"] = []string{strings.ToLower(CellConf.SiteConfig.DefaultAction)} //default action
 	}
 	return true
+}
+
+//register Session
+func RegisterSession() {
+	SESSION, _ = session.NewHandle("memorySess", "cellgosid", 3600)
+	go SESSION.GC()
 }
 
 //register https service
