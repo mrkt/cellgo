@@ -21,7 +21,15 @@
 package cellgo
 
 import (
+	"bytes"
+	"compress/flate"
+	"compress/gzip"
+	"compress/zlib"
+	"encoding/json"
 	"html/template"
+	"io"
+	"os"
+	"sync"
 	//"fmt"
 	"net/http"
 	"regexp"
@@ -41,15 +49,60 @@ type Netinfo struct {
 	Input    *CellInput
 	Output   *CellOutput
 	Request  *http.Request
-	Response http.ResponseWriter
+	Response *Response
 }
 
 // Reset init Netinfo, CellInput and CellOutput
 func (ni *Netinfo) Reset(w http.ResponseWriter, r *http.Request) {
 	ni.Request = r
-	ni.Response = w
+	if ni.Response == nil {
+		ni.Response = &Response{}
+	}
+	ni.Response.reset(w)
 	ni.Input.Reset(ni)
 	ni.Output.Reset(ni)
+}
+
+//Response is a wrapper for the http.ResponseWriter
+//started set to true if response was written to then don't execute other handler
+type Response struct {
+	http.ResponseWriter
+	Started bool
+	Status  int
+}
+
+func (r *Response) reset(w http.ResponseWriter) {
+	r.ResponseWriter = w
+	r.Status = 0
+	r.Started = false
+}
+
+// Write writes the data to the connection as part of an HTTP reply,
+// and sets `started` to true.
+// started means the response has sent out.
+func (r *Response) Write(p []byte) (int, error) {
+	r.Started = true
+	return r.ResponseWriter.Write(p)
+}
+
+// Copy writes the data to the connection as part of an HTTP reply,
+// and sets `started` to true.
+// started means the response has sent out.
+func (r *Response) Copy(buf *bytes.Buffer) (int64, error) {
+	r.Started = true
+	return io.Copy(r.ResponseWriter, buf)
+}
+
+// WriteHeader sends an HTTP response header with status code,
+// and sets `started` to true.
+func (r *Response) WriteHeader(code int) {
+	if r.Status > 0 {
+		//prevent multiple response.WriteHeader calls
+		return
+	}
+	r.Status = code
+	r.Started = true
+	r.ResponseWriter.WriteHeader(code)
 }
 
 // ------------------------------------------------------------------
@@ -362,6 +415,50 @@ func (output *CellOutput) Header(key, val string) {
 	output.Netinfo.Response.Header().Set(key, val)
 }
 
+// it sends out response body directly.
+func (output *CellOutput) Body(content []byte) error {
+	var encoding string
+	var buf = &bytes.Buffer{}
+	if output.EnableGzip {
+		encoding = ParseEncoding(output.Netinfo.Request)
+	}
+	if b, n, _ := WriteBody(encoding, buf, content); b {
+		output.Header("Content-Encoding", n)
+	} else {
+		output.Header("Content-Length", strconv.Itoa(len(content)))
+	}
+	// Write status code if it has been set manually
+	// Set it to 0 afterwards to prevent "multiple response.WriteHeader calls"
+	if output.Status != 0 {
+		output.Netinfo.Response.WriteHeader(output.Status)
+		output.Status = 0
+	}
+
+	_, err := output.Netinfo.Response.Copy(buf)
+	return err
+}
+
+// JSON writes json to response body.
+// if coding is true, it converts utf-8 to \u0000 type.
+func (output *CellOutput) JSON(data interface{}, hasIndent bool, coding bool) error {
+	output.Header("Content-Type", "application/json; charset=utf-8")
+	var content []byte
+	var err error
+	if hasIndent {
+		content, err = json.MarshalIndent(data, "", "  ")
+	} else {
+		content, err = json.Marshal(data)
+	}
+	if err != nil {
+		http.Error(output.Netinfo.Response, err.Error(), http.StatusInternalServerError)
+		return err
+	}
+	if coding {
+		content = []byte(stringsToJSON(string(content)))
+	}
+	return output.Body(content)
+}
+
 // SetStatus sets response status code.
 // It writes response header directly.
 func (output *CellOutput) SetStatus(status int) {
@@ -436,7 +533,171 @@ func stringsToJSON(str string) string {
 	return jsons
 }
 
-// Session sets session item value with given key.
-//func (output *CellOutput) Session(name interface{}, value interface{}) {
-//	output.Netinfo.Input.Session.Set(name, value)
-//}
+type resetWriter interface {
+	io.Writer
+	Reset(w io.Writer)
+}
+
+type nopResetWriter struct {
+	io.Writer
+}
+
+func (n nopResetWriter) Reset(w io.Writer) {
+	//do nothing
+}
+
+type acceptEncoder struct {
+	name                string
+	levelEncode         func(int) resetWriter
+	bestSpeedPool       *sync.Pool
+	bestCompressionPool *sync.Pool
+}
+
+func (ac acceptEncoder) encode(wr io.Writer, level int) resetWriter {
+	if ac.bestSpeedPool == nil || ac.bestCompressionPool == nil {
+		return nopResetWriter{wr}
+	}
+	var rwr resetWriter
+	switch level {
+	case flate.BestSpeed:
+		rwr = ac.bestSpeedPool.Get().(resetWriter)
+	case flate.BestCompression:
+		rwr = ac.bestCompressionPool.Get().(resetWriter)
+	default:
+		rwr = ac.levelEncode(level)
+	}
+	rwr.Reset(wr)
+	return rwr
+}
+
+func (ac acceptEncoder) put(wr resetWriter, level int) {
+	if ac.bestSpeedPool == nil || ac.bestCompressionPool == nil {
+		return
+	}
+	wr.Reset(nil)
+	switch level {
+	case flate.BestSpeed:
+		ac.bestSpeedPool.Put(wr)
+	case flate.BestCompression:
+		ac.bestCompressionPool.Put(wr)
+	}
+}
+
+var (
+	noneCompressEncoder = acceptEncoder{"", nil, nil, nil}
+	gzipCompressEncoder = acceptEncoder{"gzip",
+		func(level int) resetWriter { wr, _ := gzip.NewWriterLevel(nil, level); return wr },
+		&sync.Pool{
+			New: func() interface{} { wr, _ := gzip.NewWriterLevel(nil, flate.BestSpeed); return wr },
+		},
+		&sync.Pool{
+			New: func() interface{} { wr, _ := gzip.NewWriterLevel(nil, flate.BestCompression); return wr },
+		},
+	}
+
+	//according to the sec :http://tools.ietf.org/html/rfc2616#section-3.5 ,the deflate compress in http is zlib indeed
+	//deflate
+	//The "zlib" format defined in RFC 1950 [31] in combination with
+	//the "deflate" compression mechanism described in RFC 1951 [29].
+	deflateCompressEncoder = acceptEncoder{"deflate",
+		func(level int) resetWriter { wr, _ := zlib.NewWriterLevel(nil, level); return wr },
+		&sync.Pool{
+			New: func() interface{} { wr, _ := zlib.NewWriterLevel(nil, flate.BestSpeed); return wr },
+		},
+		&sync.Pool{
+			New: func() interface{} { wr, _ := zlib.NewWriterLevel(nil, flate.BestCompression); return wr },
+		},
+	}
+)
+
+var (
+	encoderMap = map[string]acceptEncoder{ // all the other compress methods will ignore
+		"gzip":     gzipCompressEncoder,
+		"deflate":  deflateCompressEncoder,
+		"*":        gzipCompressEncoder, // * means any compress will accept,we prefer gzip
+		"identity": noneCompressEncoder, // identity means none-compress
+	}
+)
+
+// WriteFile reads from file and writes to writer by the specific encoding(gzip/deflate)
+func WriteFile(encoding string, writer io.Writer, file *os.File) (bool, string, error) {
+	return writeLevel(encoding, writer, file, flate.BestCompression)
+}
+
+// WriteBody reads  writes content to writer by the specific encoding(gzip/deflate)
+func WriteBody(encoding string, writer io.Writer, content []byte) (bool, string, error) {
+	return writeLevel(encoding, writer, bytes.NewReader(content), flate.BestSpeed)
+}
+
+// writeLevel reads from reader,writes to writer by specific encoding and compress level
+// the compress level is defined by deflate package
+func writeLevel(encoding string, writer io.Writer, reader io.Reader, level int) (bool, string, error) {
+	var outputWriter resetWriter
+	var err error
+	var ce = noneCompressEncoder
+
+	if cf, ok := encoderMap[encoding]; ok {
+		ce = cf
+	}
+	encoding = ce.name
+	outputWriter = ce.encode(writer, level)
+	defer ce.put(outputWriter, level)
+
+	_, err = io.Copy(outputWriter, reader)
+	if err != nil {
+		return false, "", err
+	}
+
+	switch outputWriter.(type) {
+	case io.WriteCloser:
+		outputWriter.(io.WriteCloser).Close()
+	}
+	return encoding != "", encoding, nil
+}
+
+// ParseEncoding will extract the right encoding for response
+// the Accept-Encoding's sec is here:
+// http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
+func ParseEncoding(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	return parseEncoding(r)
+}
+
+type q struct {
+	name  string
+	value float64
+}
+
+func parseEncoding(r *http.Request) string {
+	acceptEncoding := r.Header.Get("Accept-Encoding")
+	if acceptEncoding == "" {
+		return ""
+	}
+	var lastQ q
+	for _, v := range strings.Split(acceptEncoding, ",") {
+		v = strings.TrimSpace(v)
+		if v == "" {
+			continue
+		}
+		vs := strings.Split(v, ";")
+		if len(vs) == 1 {
+			lastQ = q{vs[0], 1}
+			break
+		}
+		if len(vs) == 2 {
+			f, _ := strconv.ParseFloat(strings.Replace(vs[1], "q=", "", -1), 64)
+			if f == 0 {
+				continue
+			}
+			if f > lastQ.value {
+				lastQ = q{vs[0], f}
+			}
+		}
+	}
+	if cf, ok := encoderMap[lastQ.name]; ok {
+		return cf.name
+	}
+	return ""
+}
