@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"library/service"
 
 	"github.com/mrkt/cellgo"
@@ -27,6 +28,14 @@ func (this *UserController) Run() {
 func (this *UserController) Add() {
 	username := this.Net.Input.GetGP("username", true)
 	email := this.Net.Input.GetGP("email", true)
+	if user := this.Net.Input.Session.Get("user"); user != nil {
+		fmt.Println(user.(map[string]string))
+	} else {
+		var user map[string]string = make(map[string]string)
+		user["username"] = "tommy"
+		user["email"] = "tommy.jin@aliyun.com"
+		this.Net.Input.Session.Set("user", user)
+	}
 	this.Data["Username"] = username
 	this.Data["Email"] = email
 	this.Data["URI"] = this.Net.Input.Site() + this.Net.Input.URI()
