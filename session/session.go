@@ -22,6 +22,7 @@ package session
 
 import (
 	"container/list"
+	"net/http"
 	"sync"
 	"time"
 )
@@ -64,19 +65,30 @@ func (s *Session) SessionID() string {
 	return s.sid
 }
 
-type SessionQueue struct {
-	lock     sync.Mutex               //用来锁
-	sessions map[string]*list.Element //用来存储在内存
-	list     *list.List               //用来做gc
+func (s *Session) Cutoff() error {
+	return nil
 }
 
-func (sq *SessionQueue) SessionInit(sid string) (Object, error) {
+func (s *Session) SessionOut(w http.ResponseWriter) {
+}
+
+type SessionQueue struct {
+	lock        sync.Mutex               //用来锁
+	sessions    map[string]*list.Element //用来存储在内存
+	list        *list.List               //用来做gc
+	maxlifetime int64
+}
+
+// SessionInit Init cookie session sources with max lifetime and sid.
+// maxlifetime is ignored.
+func (sq *SessionQueue) SessionInit(maxlifetime int64, sid string) (Object, error) {
 	sq.lock.Lock()
 	defer sq.lock.Unlock()
 	v := make(map[interface{}]interface{}, 0)
 	newsess := &Session{sid: sid, timeAccessed: time.Now(), value: v}
 	element := sq.list.PushBack(newsess)
 	sq.sessions[sid] = element
+	sq.maxlifetime = maxlifetime
 	return newsess, nil
 }
 
@@ -84,7 +96,7 @@ func (sq *SessionQueue) SessionRead(sid string) (Object, error) {
 	if element, ok := sq.sessions[sid]; ok {
 		return element.Value.(*Session), nil
 	} else {
-		sess, err := sq.SessionInit(sid)
+		sess, err := sq.SessionInit(sq.maxlifetime, sid)
 		return sess, err
 	}
 	return nil, nil

@@ -36,20 +36,20 @@ type Object interface {
 	Get(key interface{}) interface{}  //get session value
 	Delete(key interface{}) error     //delete session value
 	SessionID() string                //back current sessionID
-	//SessionOut(w http.ResponseWriter) // open the resource & save data to provider & return the data
-	//Cutoff() error                    //Cutoff all data
+	Cutoff() error                    //Cutoff all data
+	SessionOut(w http.ResponseWriter) // open the resource & save data to provider & return the data
+
 }
 
 // Source contains global session methods and saved SessionObject.
 // it can operate a SessionObject by its id.
 type Source interface {
-	SessionInit(string) (Object, error)
+	SessionInit(int64, string) (Object, error)
 	SessionRead(string) (Object, error)
 	SessionDestroy(string) error
 	SessionUpdate(string) error
 	SessionGC(int64)
 	//SessionAll() int //get all active session
-	//SessionRegenerate(oldsid, sid string) (Object, error)
 }
 
 var sources = make(map[string]Source)
@@ -101,7 +101,7 @@ func (h *Handle) SessionStart(w http.ResponseWriter, r *http.Request) (session O
 		if errs != nil {
 			return nil, errs
 		}
-		session, _ = h.source.SessionInit(sid)
+		session, _ = h.source.SessionInit(h.maxlifetime, sid)
 		cookie := http.Cookie{Name: h.objectName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(h.maxlifetime)}
 		http.SetCookie(w, &cookie)
 	} else {
