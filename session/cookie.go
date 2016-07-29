@@ -21,8 +21,6 @@
 package session
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -43,7 +41,6 @@ type Cookie struct {
 }
 
 // Set value to cookie session.
-// the value are encoded as gob with hash block string.
 func (c *Cookie) Set(key, value interface{}) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -84,10 +81,8 @@ func (c *Cookie) SessionID() string {
 
 // SessionRelease Write cookie session to http response cookie
 func (c *Cookie) SessionOut(w http.ResponseWriter) {
-	str, err := encodeCookie(cookiequeue.block,
-		cookiequeue.config.SecurityKey,
-		cookiequeue.config.SecurityName,
-		c.values)
+	mapsStr, _ := Serialize(c.values)
+	str, err := Authcode(mapsStr, "ENCODE", cookiequeue.config.HashKey)
 	if err != nil {
 		return
 	}
@@ -103,35 +98,22 @@ func (c *Cookie) SessionOut(w http.ResponseWriter) {
 
 //cookie base json config
 type cookieConfig struct {
-	SecurityKey  string `json:"securityKey"`  //安全密钥 hash string
-	BlockKey     string `json:"blockKey"`     //AES密钥 gob encode hash string. it's saved as aes crypto.
-	SecurityName string `json:"securityName"` //安全名  recognized name in encoded cookie string
-	CookieName   string `json:"cookieName"`   //cookie name
-	Secure       bool   `json:"secure"`       //安全与否
-	Maxage       int    `json:"maxage"`       //cookie max life time
+	HashKey    string `json:"hashKey"`    //安全密钥 hash string
+	CookieName string `json:"cookieName"` //cookie name
+	Secure     bool   `json:"secure"`     //安全与否
+	Maxage     int    `json:"maxage"`     //cookie max life time
 }
 
 // CookieProvider Cookie session sources
 type CookieQueue struct {
 	maxlifetime int64
 	config      *cookieConfig
-	block       cipher.Block
 }
 
 // SessionInit Init cookie session sources with max lifetime and config json.
 func (cq *CookieQueue) SessionInit(maxlifetime int64, config string) (Object, error) {
 	cq.config = &cookieConfig{}
 	err := json.Unmarshal([]byte(config), cq.config)
-	if err != nil {
-		return nil, err
-	}
-	if cq.config.BlockKey == "" {
-		cq.config.BlockKey = string(generateRandomKey(16))
-	}
-	if cq.config.SecurityName == "" {
-		cq.config.SecurityName = string(generateRandomKey(20))
-	}
-	cq.block, err = aes.NewCipher([]byte(cq.config.BlockKey))
 	if err != nil {
 		return nil, err
 	}
@@ -142,12 +124,12 @@ func (cq *CookieQueue) SessionInit(maxlifetime int64, config string) (Object, er
 // SessionRead Get Session in cooke.
 // decode cooke string to map and put into Session with sid.
 func (cq *CookieQueue) SessionRead(sid string) (Object, error) {
-	maps, _ := decodeCookie(cq.block,
-		cq.config.SecurityKey,
-		cq.config.SecurityName,
-		sid, cq.maxlifetime)
-	if maps == nil {
+	value, _ := Authcode([]byte(sid), "DECODE", cq.config.HashKey)
+	var maps map[interface{}]interface{}
+	if value == "" {
 		maps = make(map[interface{}]interface{})
+	} else {
+		maps, _ = Unserialize([]byte(value))
 	}
 	rs := &Cookie{sid: sid, values: maps}
 	return rs, nil

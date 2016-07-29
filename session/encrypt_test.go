@@ -10,59 +10,33 @@
 //|    /\__/_/
 //|    \/_/
 //|------------------------------------------------------------------
-//| Cellgo Framework session/encrypt file
+//| Cellgo Framework session/encrypt_test file
 //| All rights reserved: By cellgo.cn CopyRight
 //| You are free to use the source code, but in the use of the process,
 //| please keep the author information. Respect for the work of others
 //| is respect for their own
 //|-------------------------------------------------------------------
-// Author:Tommy.Jin Dtime:2016-7-29
+// Author:Tommy.Jin Dtime:2016-7-30
 
 package session
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
-
-	"bytes"
 	"crypto/md5"
 	"encoding/base64"
-	"encoding/gob"
 	"encoding/hex"
+	"fmt"
+	"strconv"
+	"testing"
 )
 
-var (
-	HashKey string = "9597f4KpYTsJ5tD6"
-)
+func TestAuthcode(t *testing.T) {
 
-// serialize database
-func Serialize(obj map[interface{}]interface{}) ([]byte, error) {
-	for _, v := range obj {
-		gob.Register(v)
-	}
-	buf := bytes.NewBuffer(nil)
-	enc := gob.NewEncoder(buf)
-	err := enc.Encode(obj)
-	if err != nil {
-		return []byte(""), err
-	}
-	return buf.Bytes(), nil
-}
-
-// unserialize database
-func Unserialize(encoded []byte) (map[interface{}]interface{}, error) {
-	buf := bytes.NewBuffer(encoded)
-	dec := gob.NewDecoder(buf)
-	var out map[interface{}]interface{}
-	err := dec.Decode(&out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func Authcode(value []byte, operation string, hashkey string) (string, error) {
+	var (
+		value []byte = []byte("TOMMY")
+		//value     []byte = []byte("KMKiARpvwqUsw44iFsKWwrvDvQ==")
+		operation string = "ENCODE"
+		hashkey   string = "9597f4KpYTsJ5tD6"
+	)
 	auth_key := If(hashkey != "", hashkey, HashKey).(string)
 
 	h := md5.New()
@@ -71,12 +45,13 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 	key := hex.EncodeToString(cipherStr)
 	key_length := len(key)
 
+	//str ：= fmt.Sprintf("%d", value)
 	var valueStr string
 	if operation == "DECODE" {
 		//fmt.Println(value)
-		temp, err := decode(value)
+		temp, err := Decode(value)
 		if err != nil {
-			return "", err
+			t.Fatal("decode error", err)
 		}
 		valueStr = fmt.Sprintf("%s", temp)
 
@@ -98,7 +73,7 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 	for i := 0; i <= 255; i++ {
 		tempInt, err := strconv.ParseInt(fmt.Sprintf("%x", keys[i%key_length]), 16, 10)
 		if err != nil {
-			return "", err
+			t.Fatal("strconv.ParseInt", err)
 		}
 		rndkey[i] = int(tempInt)
 		box[i] = i
@@ -108,10 +83,8 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 		k = (k + box[j] + rndkey[j]) % 256
 		box[j], box[k] = box[k], box[j]
 	}
-
 	temprune := []rune(valueStr)
 	valueStr_length := len(temprune)
-
 	for x, y, z := 0, 0, 0; z < valueStr_length; z++ {
 		x = (x + 1) % 256
 		y = (y + box[x]) % 256
@@ -123,7 +96,7 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 		//fmt.Println(fmt.Sprintf("%x", temprune[z]))
 		tempInt, err := strconv.ParseInt(fmt.Sprintf("%x", temprune[z]), 16, 10)
 		if err != nil {
-			return "", err
+			t.Fatal("strconv.ParseInt", err)
 		}
 		//fmt.Println(tempInt)
 		str := fmt.Sprintf("%c", int(tempInt)^(box[(box[x]+box[y])%256]))
@@ -134,67 +107,43 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 	}
 
 	if operation == "DECODE" {
-
+		//fmt.Println(result)
+		/*var tempStr string
+		for _, v := range result {
+			temp, err := strconv.ParseInt(fmt.Sprintf("%s", v), 16, 10)
+			if err != nil {
+				fmt.Println("strconv.Atoi", err)
+			}
+			tempStr += fmt.Sprintf("%s", temp)
+		}
+		fmt.Println(tempStr)*/
 		h.Write([]byte(Substr(result, 8, 0) + key)) // md5加密
 		cipherStr = h.Sum(nil)
 		if Substr(result, 0, 8) == Substr(hex.EncodeToString(cipherStr), 0, 8) {
-			return Substr(result, 8, 0), nil
+			t.Fatal(Substr(result, 8, 0))
 		} else {
-			return "", nil
+			t.Fatal("null value")
 		}
 	} else {
-		return strings.Replace(fmt.Sprintf("%s", encode([]byte(result))), "=", "", -1), nil
+		t.Fatal(fmt.Sprintf("%s", Encode([]byte(result))))
 
 	}
+
 }
 
-//Intercept string function
-func Substr(str string, start, length int) string {
-	rs := []rune(str)
-	rl := len(rs)
-	if length == 0 {
-		return string(rs[start:])
-	}
-	end := 0
-	if start < 0 {
-		start = rl - 1 + start
-	}
-	end = start + length
-	if start > end {
-		start, end = end, start
-	}
-	if start < 0 {
-		start = 0
-	}
-	if start > rl {
-		start = rl
-	}
-	if end < 0 {
-		end = 0
-	}
-	if end > rl {
-		end = rl
-	}
-	return string(rs[start:end])
-}
-
-//Simulated three element operation
-func If(condition bool, trueVal, falseVal interface{}) interface{} {
-	if condition {
-		return trueVal
-	}
-	return falseVal
+func TestAuthcodeTrue(t *testing.T) {
+	t.Fatal(Authcode([]byte("KMKiARpvwqUsw44iFsKWwrvDvQ=="), "DECODE", "9597f4KpYTsJ5tD6"))
 }
 
 // encode encodes a value using base64.
-func encode(value []byte) []byte {
+func Encode(value []byte) []byte {
 	encoded := make([]byte, base64.URLEncoding.EncodedLen(len(value)))
 	base64.URLEncoding.Encode(encoded, value)
 	return encoded
 }
 
 // decode decodes a cookie using base64.
-func decode(value []byte) ([]byte, error) {
+func Decode(value []byte) ([]byte, error) {
 	decoded := make([]byte, base64.URLEncoding.DecodedLen(len(value)))
 	b, err := base64.URLEncoding.Decode(decoded, value)
 	if err != nil {
