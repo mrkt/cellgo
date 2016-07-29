@@ -57,13 +57,14 @@ type SiteConfig struct {
 	TemplatePath      string
 	IsViewFilter      bool //Open html filter * 1. 对多人合作，安全性可控比较差的项目建议开启 2. 对HTML进行转义，预防XSS攻击
 	IsUri             bool //Open rewrite path: /user/add/username/jack
-	//Session
+	SessionOn         bool
+	CookieHashKey     string
 }
 
 // Version number of the cellgo.
 const (
-	VERSION  = "0.0.9"
-	LASTDATE = "July 25, 2016"
+	VERSION  = "0.1.3"
+	LASTDATE = "July 30, 2016"
 )
 
 var (
@@ -101,6 +102,8 @@ func init() {
 			TemplatePath:      "template",
 			IsViewFilter:      false,
 			IsUri:             false,
+			SessionOn:         true,
+			CookieHashKey      "9597f4KpYTsJ5tD6",
 		},
 	}
 
