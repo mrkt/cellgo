@@ -30,12 +30,13 @@ import (
 var cookiequeue = &CookieQueue{}
 
 func init() {
-	RegisterSource("defaultCookie", cookiequeue)
+	RegisterSource("cookie", cookiequeue)
 }
 
 // CookieSessionStore Cookie SessionStore
 type Cookie struct {
 	sid    string
+	from   string                      // 待解密
 	values map[interface{}]interface{} // session data
 	lock   sync.RWMutex
 }
@@ -81,18 +82,20 @@ func (c *Cookie) SessionID() string {
 
 // SessionRelease Write cookie session to http response cookie
 func (c *Cookie) SessionOut(w http.ResponseWriter) {
-	mapsStr, _ := Serialize(c.values)
+	mapsStr, err := Serialize(c.values)
 	str, err := Authcode(mapsStr, "ENCODE", cookiequeue.config.HashKey)
 	if err != nil {
 		return
 	}
+
 	cookie := &http.Cookie{Name: cookiequeue.config.CookieName,
 		Value:    url.QueryEscape(str),
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   cookiequeue.config.Secure,
 		MaxAge:   cookiequeue.config.Maxage}
 	http.SetCookie(w, cookie)
+	//cookie := http.Cookie{Name: "cellsessionc", Value: url.QueryEscape(""), Path: "/", HttpOnly: true, MaxAge: int(3600)}
+	//http.SetCookie(w, &cookie)
 	return
 }
 
@@ -118,20 +121,23 @@ func (cq *CookieQueue) SessionInit(maxlifetime int64, config string) (Object, er
 		return nil, err
 	}
 	cq.maxlifetime = maxlifetime
-	return nil, nil
+	v := make(map[interface{}]interface{}, 0)
+	newcook := &Cookie{values: v}
+	return newcook, nil
 }
 
 // SessionRead Get Session in cooke.
-// decode cooke string to map and put into Session with sid.
-func (cq *CookieQueue) SessionRead(sid string) (Object, error) {
-	value, _ := Authcode([]byte(sid), "DECODE", cq.config.HashKey)
+// decode cooke string to map and put into Session with val.
+func (cq *CookieQueue) SessionRead(val string) (Object, error) {
+	value, _ := Authcode([]byte(val), "DECODE", cq.config.HashKey)
 	var maps map[interface{}]interface{}
+
 	if value == "" {
 		maps = make(map[interface{}]interface{})
 	} else {
 		maps, _ = Unserialize([]byte(value))
 	}
-	rs := &Cookie{sid: sid, values: maps}
+	rs := &Cookie{from: val, values: maps}
 	return rs, nil
 }
 

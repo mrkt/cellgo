@@ -21,14 +21,14 @@
 package session
 
 import (
+	"bytes"
+	"encoding/gob"
+
 	"fmt"
 	"strconv"
-	"strings"
 
-	"bytes"
 	"crypto/md5"
 	"encoding/base64"
-	"encoding/gob"
 	"encoding/hex"
 )
 
@@ -62,18 +62,22 @@ func Unserialize(encoded []byte) (map[interface{}]interface{}, error) {
 	return out, nil
 }
 
-func Authcode(value []byte, operation string, hashkey string) (string, error) {
+func Authcode(valueFormer []byte, operation string, hashkey string) (string, error) {
+	var value []byte
+	if operation == "ENCODE" {
+		temp := encode(valueFormer)
+		value = temp
+	} else {
+		value = valueFormer
+	}
 	auth_key := If(hashkey != "", hashkey, HashKey).(string)
-
 	h := md5.New()
 	h.Write([]byte(auth_key)) // md5加密
 	cipherStr := h.Sum(nil)
 	key := hex.EncodeToString(cipherStr)
 	key_length := len(key)
-
 	var valueStr string
 	if operation == "DECODE" {
-		//fmt.Println(value)
 		temp, err := decode(value)
 		if err != nil {
 			return "", err
@@ -86,7 +90,6 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 		valueStr = Substr(hex.EncodeToString(cipherStr), 0, 8) + fmt.Sprintf("%s", value)
 
 	}
-
 	var (
 		rndkey [256]int
 		box    [256]int
@@ -98,6 +101,7 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 	for i := 0; i <= 255; i++ {
 		tempInt, err := strconv.ParseInt(fmt.Sprintf("%x", keys[i%key_length]), 16, 10)
 		if err != nil {
+
 			return "", err
 		}
 		rndkey[i] = int(tempInt)
@@ -111,25 +115,15 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 
 	temprune := []rune(valueStr)
 	valueStr_length := len(temprune)
-
 	for x, y, z := 0, 0, 0; z < valueStr_length; z++ {
 		x = (x + 1) % 256
 		y = (y + box[x]) % 256
 		box[x], box[y] = box[y], box[x]
-		//fmt.Println(valueStr)
-		//fmt.Println(temprune)
-		//fmt.Println(valueStr_length)
-		//fmt.Println(z)
-		//fmt.Println(fmt.Sprintf("%x", temprune[z]))
-		tempInt, err := strconv.ParseInt(fmt.Sprintf("%x", temprune[z]), 16, 10)
+		tempInt, err := strconv.ParseInt(fmt.Sprintf("%x", temprune[z]), 16, 64)
 		if err != nil {
 			return "", err
 		}
-		//fmt.Println(tempInt)
 		str := fmt.Sprintf("%c", int(tempInt)^(box[(box[x]+box[y])%256]))
-		//fmt.Println(str)
-		//temp16 := strconv.FormatInt(int64(int(tempInt)^(box[(box[x]+box[y])%256])), 16)
-		//fmt.Println(fmt.Sprintf("%c", temp16))
 		result += str
 	}
 
@@ -138,12 +132,16 @@ func Authcode(value []byte, operation string, hashkey string) (string, error) {
 		h.Write([]byte(Substr(result, 8, 0) + key)) // md5加密
 		cipherStr = h.Sum(nil)
 		if Substr(result, 0, 8) == Substr(hex.EncodeToString(cipherStr), 0, 8) {
-			return Substr(result, 8, 0), nil
+			temp, err := decode([]byte(Substr(result, 8, 0)))
+			if err != nil {
+				return "", err
+			}
+			return fmt.Sprintf("%s", temp), nil
 		} else {
 			return "", nil
 		}
 	} else {
-		return strings.Replace(fmt.Sprintf("%s", encode([]byte(result))), "=", "", -1), nil
+		return fmt.Sprintf("%s", encode([]byte(result))), nil
 
 	}
 }

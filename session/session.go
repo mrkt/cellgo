@@ -30,7 +30,7 @@ import (
 var sessionqueue = &SessionQueue{sessions: make(map[string]*list.Element, 0), list: list.New()}
 
 func init() {
-	RegisterSource("memorySess", sessionqueue)
+	RegisterSource("session", sessionqueue)
 }
 
 type Session struct {

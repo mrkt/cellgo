@@ -120,6 +120,7 @@ var (
 type CellInput struct {
 	Netinfo     *Netinfo
 	Session     session.Object
+	Cookie      session.Object
 	pnames      []string
 	pvalues     []string
 	data        map[interface{}]interface{}
@@ -351,7 +352,7 @@ func (input *CellInput) Header(key string) string {
 
 // Cookie returns request cookie item string by a given key.
 // if non-existed, return empty string.
-func (input *CellInput) Cookie(key string) string {
+func (input *CellInput) GetCookie(key string) string {
 	ck, err := input.Netinfo.Request.Cookie(key)
 	if err != nil {
 		return ""
@@ -361,9 +362,9 @@ func (input *CellInput) Cookie(key string) string {
 
 // Session returns current session item value by a given key.
 // if non-existed, return empty string.
-//func (input *CellInput) Session(key interface{}) interface{} {
-//	return input.Session.Get(key)
-//}
+func (input *CellInput) GetSession(key interface{}) interface{} {
+	return input.Session.Get(key)
+}
 
 // Data return the implicit data in the input
 func (input *CellInput) Data() map[interface{}]interface{} {

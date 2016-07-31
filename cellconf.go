@@ -111,7 +111,7 @@ func init() {
 			SessionName:       "cellsession",
 			SessionMaxage:     3600,
 			CookieOn:          true,
-			CookieName:        "cellsessionc",
+			CookieName:        "cellcookie",
 			CookieMaxage:      "3600",
 			CookieHashKey:     "9597f4KpYTsJ5tD6",
 		},

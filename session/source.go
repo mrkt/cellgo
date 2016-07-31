@@ -23,6 +23,7 @@ package session
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -92,21 +93,47 @@ func (h *Handle) sessionId() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
+//cookie base json config
+type config struct {
+	HashKey    string `json:"hashKey"`    //安全密钥 hash string
+	CookieName string `json:"cookieName"` //cookie name
+	Secure     bool   `json:"secure"`     //安全与否
+	Maxage     int    `json:"maxage"`     //cookie max life time
+}
+
 func (h *Handle) SessionStart(w http.ResponseWriter, r *http.Request) (session Object, err error) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
-	cookie, err := r.Cookie(h.objectName)
-	if err != nil || cookie.Value == "" {
-		sid, errs := h.sessionId()
-		if errs != nil {
-			return nil, errs
+	if h.sourcename == "cookie" {
+		cf := new(config)
+		err := json.Unmarshal([]byte(h.objectName), cf)
+		if err != nil {
+			return nil, err
 		}
-		session, _ = h.source.SessionInit(h.maxlifetime, sid)
-		cookie := http.Cookie{Name: h.objectName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(h.maxlifetime)}
-		http.SetCookie(w, &cookie)
-	} else {
-		sid, _ := url.QueryUnescape(cookie.Value)
-		session, _ = h.source.SessionRead(sid)
+		cookie, err := r.Cookie(cf.CookieName)
+		if err != nil || cookie.Value == "" {
+			session, _ = h.source.SessionInit(h.maxlifetime, h.objectName)
+			//cookie := http.Cookie{Name: cf.CookieName, Value: url.QueryEscape(""), Path: "/", HttpOnly: true, MaxAge: int(h.maxlifetime)}
+			//http.SetCookie(w, &cookie)
+		} else {
+			cookieVal, _ := url.QueryUnescape(cookie.Value)
+			session, _ = h.source.SessionRead(cookieVal)
+		}
+	}
+	if h.sourcename == "session" {
+		cookie, err := r.Cookie(h.objectName)
+		if err != nil || cookie.Value == "" {
+			sid, errs := h.sessionId()
+			if errs != nil {
+				return nil, errs
+			}
+			session, _ = h.source.SessionInit(h.maxlifetime, sid)
+			cookie := http.Cookie{Name: h.objectName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(h.maxlifetime)}
+			http.SetCookie(w, &cookie)
+		} else {
+			sid, _ := url.QueryUnescape(cookie.Value)
+			session, _ = h.source.SessionRead(sid)
+		}
 	}
 	return
 }

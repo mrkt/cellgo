@@ -61,6 +61,14 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 	net.Reset(w, r)
 	defer p.pool.Put(net) //销毁池
 	// session init
+	if CellConf.SiteConfig.CookieOn {
+		var err error
+		net.Input.Cookie, err = COOKIE.SessionStart(w, r)
+		if err != nil {
+			CellError.ErrMaps["500"].handler(w, r)
+			return
+		}
+	}
 	if CellConf.SiteConfig.SessionOn {
 		var err error
 		net.Input.Session, err = SESSION.SessionStart(w, r)
@@ -68,12 +76,9 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 			CellError.ErrMaps["500"].handler(w, r)
 			return
 		}
-		/*defer func() {
-			if Netinfo.Input.Session != nil {
-				Netinfo.Input.Session.SessionRelease(rw)
-			}
-		}()*/
+
 	}
+
 	//M := r.Form["m"]
 	if c, a := strings.Join(r.Form["c"], ""), strings.Join(r.Form["a"], ""); c != "" && a != "" {
 		var getTitle string
@@ -141,7 +146,13 @@ func (p *ControllerRegister) workHTTP(w http.ResponseWriter, r *http.Request) {
 
 			method = vc.MethodByName("After")
 			method.Call(in)
-
+			//push cookiesession
+			if net.Input.Session != nil {
+				net.Input.Session.SessionOut(w)
+			}
+			if net.Input.Cookie != nil {
+				net.Input.Cookie.SessionOut(w)
+			}
 			if CellConf.SiteConfig.AutoDisplay {
 				method = vc.MethodByName("Display")
 				method.Call(in)
