@@ -108,10 +108,10 @@ func (err *Error) ErrController(c ControllerInterface) *Core {
 }
 
 //Print error && panic
-func (err *Error) FailOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-		panic(fmt.Sprintf("%s: %s", msg, err))
+func (err *Error) FailOnError(errs error, msg string) {
+	if errs != nil {
+		log.Fatalf("%s: %s", msg, errs)
+		panic(fmt.Sprintf("%s: %s", msg, errs))
 	}
 }
 
