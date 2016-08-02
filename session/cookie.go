@@ -92,6 +92,7 @@ func (c *Cookie) SessionOut(w http.ResponseWriter) {
 		Value:    url.QueryEscape(str),
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   cookiequeue.config.Secure,
 		MaxAge:   cookiequeue.config.Maxage}
 	http.SetCookie(w, cookie)
 	//cookie := http.Cookie{Name: "cellsessionc", Value: url.QueryEscape(""), Path: "/", HttpOnly: true, MaxAge: int(3600)}
