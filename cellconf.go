@@ -63,13 +63,14 @@ type SiteConfig struct {
 	CookieOn          bool
 	CookieName        string
 	CookieMaxage      string
-	CookieHashKey     string
+	CookieHashKey     string //Encryption interference
+	CookieSecure      string //https security
 }
 
 // Version number of the cellgo.
 const (
-	VERSION  = "0.1.5"
-	LASTDATE = "August 01, 2016"
+	VERSION  = "0.1.6"
+	LASTDATE = "August 02, 2016"
 )
 
 var (
@@ -114,6 +115,7 @@ func init() {
 			CookieName:        "cellcookie",
 			CookieMaxage:      "3600",
 			CookieHashKey:     "9597f4KpYTsJ5tD6",
+			CookieSecure:      "false",
 		},
 	}
 

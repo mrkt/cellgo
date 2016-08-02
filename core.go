@@ -136,7 +136,7 @@ func (core *Core) CheckParam(w http.ResponseWriter, r *http.Request) bool {
 func RegisterSession() {
 
 	SESSION, _ = session.NewHandle("session", CellConf.SiteConfig.SessionName, CellConf.SiteConfig.SessionMaxage)
-	COOKIE, _ = session.NewHandle("cookie", "{\"hashKey\":\""+CellConf.SiteConfig.CookieHashKey+"\",\"cookieName\":\""+CellConf.SiteConfig.CookieName+"\",\"secure\":true,\"maxage\":"+CellConf.SiteConfig.CookieMaxage+"}", CellConf.SiteConfig.SessionMaxage)
+	COOKIE, _ = session.NewHandle("cookie", "{\"hashKey\":\""+CellConf.SiteConfig.CookieHashKey+"\",\"cookieName\":\""+CellConf.SiteConfig.CookieName+"\",\"secure\":"+CellConf.SiteConfig.CookieSecure+",\"maxage\":"+CellConf.SiteConfig.CookieMaxage+"}", CellConf.SiteConfig.SessionMaxage)
 	go SESSION.GC()
 
 }
