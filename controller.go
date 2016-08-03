@@ -25,6 +25,8 @@ import (
 	"log"
 	"path"
 	"reflect"
+
+	"github.com/mrkt/cellgo/tool"
 )
 
 type Controller struct {
@@ -45,6 +47,9 @@ type Controller struct {
 	//service & dao
 	serviceType reflect.Type
 	daoType     reflect.Type
+
+	//tool package
+	Tool *tool.Tool
 }
 
 // ControllerInterface is an interface to uniform all controller handler.
@@ -69,6 +74,7 @@ func (c *Controller) Init(net *Netinfo, controllerName, actionName string, app i
 	c.TplDir = CellConf.SiteConfig.TemplatePath
 	c.AppController = app
 	c.Data = net.Input.Data()
+	c.Tool = tool.TOOL
 }
 
 // Prepare runs after Init before request function execution.
