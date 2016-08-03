@@ -69,8 +69,8 @@ type SiteConfig struct {
 
 // Version number of the cellgo.
 const (
-	VERSION  = "0.1.6"
-	LASTDATE = "August 02, 2016"
+	VERSION  = "0.1.7"
+	LASTDATE = "August 03, 2016"
 )
 
 var (
@@ -113,7 +113,7 @@ func init() {
 			SessionMaxage:     3600,
 			CookieOn:          true,
 			CookieName:        "cellcookie",
-			CookieMaxage:      "3600",
+			CookieMaxage:      "86400",
 			CookieHashKey:     "9597f4KpYTsJ5tD6",
 			CookieSecure:      "false",
 		},
