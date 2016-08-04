@@ -25,6 +25,7 @@ var TOOL = &Tool{
 	Base64:  Base64,
 	Urlcode: Urlcode,
 	Json:    Json,
+	Map2:    Map,
 }
 
 type Tool struct {
@@ -32,4 +33,5 @@ type Tool struct {
 	Base64  *base64Tool  //Base64 Encrypt and Decrypt
 	Urlcode *urlcodeTool //Urlcode Encrypt and Decrypt
 	Json    *jsonTool    //Json Transformation
+	Map2    *mapTool     //2Map Transformation
 }
