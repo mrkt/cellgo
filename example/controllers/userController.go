@@ -63,3 +63,7 @@ func (this *UserController) Cookie() {
 	this.Data["URI"] = this.Net.Input.Site() + this.Net.Input.URI()
 	this.TplName = "index.html"
 }
+
+func (this *UserController) Event() {
+	this.Net.Output.Body([]byte(cellgo.Events["event1"].EventId))
+}

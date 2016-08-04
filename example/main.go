@@ -8,5 +8,6 @@ import (
 
 func main() {
 	conf.SetController()
+	conf.SetEvent()
 	cellgo.Run()
 }
