@@ -42,7 +42,7 @@ type Controller struct {
 	// controller info
 	controllerName string
 	actionName     string
-	AppController  interface{}
+	Coredrive      interface{}
 
 	//service & dao
 	serviceType reflect.Type
@@ -54,7 +54,7 @@ type Controller struct {
 
 // ControllerInterface is an interface to uniform all controller handler.
 type ControllerInterface interface {
-	Init(net *Netinfo, controllerName, actionName string, app interface{})
+	Init(net *Netinfo, controllerName, actionName string, core interface{})
 	Before()
 	After()
 	GetService(ServiceInterface)
@@ -65,14 +65,14 @@ type ControllerInterface interface {
 }
 
 // Init generates default values of controller operations.
-func (c *Controller) Init(net *Netinfo, controllerName, actionName string, app interface{}) {
+func (c *Controller) Init(net *Netinfo, controllerName, actionName string, core interface{}) {
 	c.TplName = ""
 	c.controllerName = controllerName
 	c.actionName = actionName
 	c.Net = net
 	c.TplExt = CellConf.SiteConfig.TemplateExt
 	c.TplDir = CellConf.SiteConfig.TemplatePath
-	c.AppController = app
+	c.Coredrive = core
 	c.Data = net.Input.Data()
 	c.Tool = tool.TOOL
 }
