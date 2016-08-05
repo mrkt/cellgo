@@ -18,4 +18,25 @@
 //|-------------------------------------------------------------------
 // Author:Tommy.Jin Dtime:2016-08-02
 
-package socketio
+package socket
+
+import (
+	"errors"
+)
+
+//Socketio Runner Operation type
+type SocketioRunner struct {
+	FromInfo  interface{} //socketio runner's enter identification information
+	CarryInfo interface{} //socketio runner's carrying identification information
+	Pushed    []string    //socketio runner's pushed log
+}
+
+func (s *SocketioRunner) RegRunner(interface{}) (interface{}, error) {
+	return "", errors.New("")
+}
+func (s *SocketioRunner) IncreasePushed(string) error {
+	return nil
+}
+func (s *SocketioRunner) DetectPushed(string) (bool, error) {
+	return true, nil
+}

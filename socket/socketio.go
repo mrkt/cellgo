@@ -10,7 +10,7 @@
 //|    /\__/_/
 //|    \/_/
 //| ------------------------------------------------------------------
-//| Cellgo Framework socketio/socketio_room file
+//| Cellgo Framework socketio/socketio file
 //| All rights reserved: By cellgo.cn CopyRight
 //| You are free to use the source code, but in the use of the process,
 //| please keep the author information. Respect for the work of others
@@ -18,4 +18,4 @@
 //|-------------------------------------------------------------------
 // Author:Tommy.Jin Dtime:2016-08-02
 
-package socketio
+package socket
