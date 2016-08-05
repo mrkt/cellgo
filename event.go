@@ -24,6 +24,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	//"fmt"
 	"io"
 	"reflect"
 	"sync"
@@ -158,9 +159,6 @@ func (e *Event) EventDestroy(title string, hp bool) {
 
 //If Happe begin time is up to GC
 func (e *Event) EventON() {
-	e.lock.Lock()
-	defer e.lock.Unlock()
-
 	for {
 		if e.Happen != nil {
 			for k, v := range e.Happen {
@@ -171,14 +169,12 @@ func (e *Event) EventON() {
 			}
 		}
 		time.Sleep(time.Second * 1) //stop 1 sec check
+		//fmt.Println("ON")
 	}
 }
 
 //If Happend failure time is up to GC
 func (e *Event) EventGC() {
-	e.lock.Lock()
-	defer e.lock.Unlock()
-
 	for {
 		if e.Happened != nil {
 			for k, v := range e.Happened {
@@ -188,11 +184,12 @@ func (e *Event) EventGC() {
 			}
 		}
 		time.Sleep(time.Second * 1) //stop 1 sec check
+		//fmt.Println("GC")
 	}
 }
 
 //An instance of happen is added to the event instance
-func (e *Event) EventAdd(title string, c ControllerInterface, fc []string, begin int64, end int64) {
+func (e *Event) EventAdd(title string, c ControllerInterface, fc []string, begin int64, end int64, coreDate interface{}) {
 	info := &happen{}
 	t := reflect.Indirect(reflect.ValueOf(c)).Type()
 	info.controllerType = t
@@ -200,5 +197,6 @@ func (e *Event) EventAdd(title string, c ControllerInterface, fc []string, begin
 	info.param = fc
 	info.begin = begin
 	info.end = end
+	info.coreData = coreDate
 	e.Happen[title] = info
 }
