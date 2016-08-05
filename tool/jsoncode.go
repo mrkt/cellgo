@@ -21,7 +21,7 @@
 package tool
 
 import (
-	"encoding/base64"
+	"encoding/json"
 )
 
 var Json = &jsonTool{}
@@ -29,17 +29,20 @@ var Json = &jsonTool{}
 type jsonTool struct {
 }
 
-// encode encodes a value using base64.
-func (bs *jsonTool) Encode(value []byte) string {
-	encoded := base64.StdEncoding.EncodeToString(value)
-	return encoded
-}
-
-// decode decodes a value using base64.
-func (bs *jsonTool) Decode(value string) ([]byte, error) {
-	decoded, err := base64.StdEncoding.DecodeString(value)
+// encode struct 2 json.
+func (j *jsonTool) Encode(value interface{}) ([]byte, error) {
+	encoded, err := json.Marshal(value)
 	if err != nil {
 		return nil, err
 	}
-	return decoded, nil
+	return encoded, nil
+}
+
+// decode json 2 struct.
+func (j *jsonTool) Decode(value []byte, decoded interface{}) error {
+	err := json.Unmarshal(value, decoded)
+	if err != nil {
+		return err
+	}
+	return nil
 }
