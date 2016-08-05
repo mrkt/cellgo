@@ -16,6 +16,6 @@
 //| please keep the author information. Respect for the work of others
 //| is respect for their own
 //|-------------------------------------------------------------------
-// Author:Tommy.Jin Dtime:2016-08-02
+// Author:Tommy.Jin Dtime:2016-08-06
 
 package socket

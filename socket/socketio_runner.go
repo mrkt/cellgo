@@ -16,7 +16,7 @@
 //| please keep the author information. Respect for the work of others
 //| is respect for their own
 //|-------------------------------------------------------------------
-// Author:Tommy.Jin Dtime:2016-08-02
+// Author:Tommy.Jin Dtime:2016-08-06
 
 package socket
 
@@ -34,9 +34,11 @@ type SocketioRunner struct {
 func (s *SocketioRunner) RegRunner(interface{}) (interface{}, error) {
 	return "", errors.New("")
 }
+
 func (s *SocketioRunner) IncreasePushed(string) error {
 	return nil
 }
+
 func (s *SocketioRunner) DetectPushed(string) (bool, error) {
 	return true, nil
 }
