@@ -18,7 +18,56 @@
 //|-------------------------------------------------------------------
 // Author:Tommy.Jin Dtime:2016-08-06
 
-package socket
+package tcpip
+
+import (
+	"github.com/googollee/go-socket.io"
+)
+
+const (
+	SOCKET = iota
+	SOCKETIO
+	WEBSOCKET
+	ICMP
+)
+
+var (
+	Tcp = make(map[int][]*TcpRun)
+)
+
+type TcpRun struct {
+	TcpName string
+	TcpType int //SOCKET/SOCKETIO/WEBSOCKET/ICMP
+	Addr    string
+	Route   string
+	Handle  interface{} //conn handle
+}
+
+func RegisterTcp(tcpType int, addr string, route string, tcpName string) error {
+	var (
+		handle interface{}
+		err    error
+	)
+	switch {
+	case tcpType == SOCKET:
+		break
+	case tcpType == SOCKETIO:
+		handle, err = socketio.NewServer(nil)
+		if err != nil {
+			return err
+		}
+		Tcp[SOCKETIO] = append(Tcp[SOCKETIO], &TcpRun{TcpName: tcpName, TcpType: tcpType, Addr: addr, Route: route, Handle: handle})
+		break
+	case tcpType == WEBSOCKET:
+		break
+	case tcpType == ICMP:
+		break
+	default:
+		break
+
+	}
+	return nil
+}
 
 //socket room interface
 type Room interface {

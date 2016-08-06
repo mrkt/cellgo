@@ -18,7 +18,7 @@
 //|-------------------------------------------------------------------
 // Author:Tommy.Jin Dtime:2016-08-06
 
-package socket
+package tcpip
 
 //Socketio Room Operation type
 type SocketioRoom struct {
