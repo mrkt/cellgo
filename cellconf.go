@@ -39,6 +39,8 @@ type Listen struct {
 	HTTPSKeyFile  string //https conn keyfile
 	WEBSOCKETAddr string //websocket conn Port
 	WEBSOCKETPort int    //websocket conn Port
+	SOCKETIOAddr  string //socketio conn Port
+	SOCKETIOPort  int    //socketio conn Port
 }
 
 // SiteConfig holds Site related config
@@ -69,8 +71,8 @@ type SiteConfig struct {
 
 // Version number of the cellgo.
 const (
-	VERSION  = "0.1.8"
-	LASTDATE = "August 05, 2016"
+	VERSION  = "0.1.9"
+	LASTDATE = "August 06, 2016"
 )
 
 var (
@@ -92,6 +94,8 @@ func init() {
 			HTTPSKeyFile:  "",
 			WEBSOCKETAddr: "",
 			WEBSOCKETPort: 8088,
+			SOCKETIOAddr:  "",
+			SOCKETIOPort:  5000,
 		},
 		SiteConfig: SiteConfig{
 			AutoDisplay:       true,
