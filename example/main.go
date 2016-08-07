@@ -9,5 +9,6 @@ import (
 func main() {
 	conf.SetController()
 	conf.SetEvent()
+	conf.SetTcp()
 	cellgo.Run()
 }
