@@ -74,7 +74,7 @@ type TcpExchange interface {
 	CreateExchange(name string, number string) (bool, error)             //Create a Exchange
 	RenewExchange(style int, value map[string]interface{}) (bool, error) //Renew Exchange data
 	DestroyExchange(number string) (bool, error)                         //Destroy a Exchange
-	IncreaseQueue(runner *Runner, carryInfo string) (bool, error)        //Allow an Queue to enter the Exchange
+	IncreaseQueue(tcpQueue *TcpQueue, carryInfo string) (bool, error)    //Allow an Queue to enter the Exchange
 }
 
 //Queue interface

@@ -24,24 +24,15 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	//"fmt"
 	"io"
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/mrkt/cellgo/tcpip"
 )
 
 var Events = make(map[string]*Event)
-
-// RegisterEvent makes a Event by the Event name.
-func RegisterEvent(name string, waitTime int64) {
-	if Events[name] != nil {
-		panic("Event: Register Events not nil")
-	}
-	event := &Event{}
-	event.EventInit(waitTime)
-	Events[name] = event
-}
 
 //happen type
 type happen struct {
@@ -199,4 +190,19 @@ func (e *Event) EventAdd(title string, c ControllerInterface, fc []string, begin
 	info.end = end
 	info.coreData = coreDate
 	e.Happen[title] = info
+}
+
+// RegisterEvent makes a Event by the Event name.
+func RegisterEvent(name string, waitTime int64) {
+	if Events[name] != nil {
+		panic("Event: Register Events not nil")
+	}
+	event := &Event{}
+	event.EventInit(waitTime)
+	Events[name] = event
+}
+
+// Register TCP from TCP package
+func RegisterTcp(tcpType int, addr string, route string, tcpName string) {
+	tcpip.RegisterTcp(tcpType, addr, route, tcpName)
 }

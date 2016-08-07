@@ -10,7 +10,7 @@
 //|    /\__/_/
 //|    \/_/
 //|------------------------------------------------------------------
-//| Cellgo Framework Boot file
+//| Cellgo Framework Run file
 //| All rights reserved: By cellgo.cn CopyRight
 //| You are free to use the source code, but in the use of the process,
 //| please keep the author information. Respect for the work of others
@@ -49,13 +49,15 @@ var cellShow = string(`
 func Run() {
 	fmt.Println(cellShow)
 	fmt.Println(CellConf.ServerName, " is Runing...")
-	initRawData()
+	powerBoot()
 	fmt.Println("Cellgo RawData Runing...")
 	CellCore.Run()
 }
 
 // Raw data loading
-func initRawData() {
-	//init Data
-
+func powerBoot() {
+	//init Data whit boot
+	bt := Boot{}
+	bt.GCEvent()
+	bt.RunSocketIO()
 }
