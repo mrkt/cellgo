@@ -10,7 +10,7 @@
 //|    /\__/_/
 //|    \/_/
 //| ------------------------------------------------------------------
-//| Cellgo Framework socketio/socketio_runner file
+//| Cellgo Framework tcpip/queue file
 //| All rights reserved: By cellgo.cn CopyRight
 //| You are free to use the source code, but in the use of the process,
 //| please keep the author information. Respect for the work of others
@@ -24,21 +24,21 @@ import (
 	"errors"
 )
 
-//Socketio Runner Operation type
-type SocketioRunner struct {
-	FromInfo  interface{} //socketio runner's enter identification information
-	CarryInfo interface{} //socketio runner's carrying identification information
-	Pushed    []string    //socketio runner's pushed log
+//Queue Operation type
+type Queue struct {
+	FromInfo  interface{} //Queue's enter identification information
+	CarryInfo interface{} //Queue's carrying identification information
+	Pushed    []string    //Queue's pushed log
 }
 
-func (s *SocketioRunner) RegRunner(interface{}) (interface{}, error) {
+func (q *Queue) RegQueue(interface{}) (interface{}, error) {
 	return "", errors.New("")
 }
 
-func (s *SocketioRunner) IncreasePushed(string) error {
+func (q *Queue) IncreasePushed(string) error {
 	return nil
 }
 
-func (s *SocketioRunner) DetectPushed(string) (bool, error) {
+func (q *Queue) DetectPushed(string) (bool, error) {
 	return true, nil
 }
