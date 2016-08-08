@@ -155,6 +155,18 @@ func (e *Event) EventON() {
 			for k, v := range e.Happen {
 				if v.begin < time.Now().Unix() {
 					e.Happened[k] = v
+					vc := reflect.New(v.controllerType)
+					init := vc.MethodByName("Init")
+					in := make([]reflect.Value, 4)
+					//Assignment parameter with begin
+					in[0] = reflect.ValueOf(nil)
+					in[1] = reflect.ValueOf(v.controllerTitle)
+					in[2] = reflect.ValueOf("Begin") //event on function
+					in[3] = reflect.ValueOf(v.coreData)
+					init.Call(in)
+					in = make([]reflect.Value, 0)
+					method := vc.MethodByName("Begin ")
+					method.Call(in)
 					delete(e.Happen, k)
 				}
 			}
@@ -170,6 +182,19 @@ func (e *Event) EventGC() {
 		if e.Happened != nil {
 			for k, v := range e.Happened {
 				if v.end < time.Now().Unix() {
+					vc := reflect.New(v.controllerType)
+					init := vc.MethodByName("Init")
+					in := make([]reflect.Value, 4)
+					//Assignment parameter with begin
+					in[0] = reflect.ValueOf(nil)
+					in[1] = reflect.ValueOf(v.controllerTitle)
+					in[2] = reflect.ValueOf("End") //event on function
+					in[3] = reflect.ValueOf(v.coreData)
+					init.Call(in)
+
+					in = make([]reflect.Value, 0)
+					method := vc.MethodByName("End")
+					method.Call(in)
 					delete(e.Happened, k)
 				}
 			}
@@ -203,6 +228,6 @@ func RegisterEvent(name string, waitTime int64) {
 }
 
 // Register TCP from TCP package
-func RegisterTcp(tcpType int, addr string, route string, tcpName string) {
-	tcpip.RegisterTcp(tcpType, addr, route, tcpName)
+func RegisterTcp(tcpType int, addr string, route string, tcpName string, tcpConf string) {
+	tcpip.RegisterTcp(tcpType, addr, route, tcpName, tcpConf)
 }

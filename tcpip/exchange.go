@@ -30,6 +30,11 @@ type Exchange struct {
 }
 
 //Create a Exchange
+func (e *Exchange) BindEvent(name string, number string) (bool, error) {
+	return true, nil
+}
+
+//Create a Exchange
 func (e *Exchange) CreateExchange(name string, number string) (bool, error) {
 	return true, nil
 }

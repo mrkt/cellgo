@@ -5,6 +5,6 @@ import (
 )
 
 func SetTcp() {
-	cellgo.RegisterTcp(1, ":5000", "/socket.io/", "cellio")
+	cellgo.RegisterTcp(1, ":5000", "/socket.io/", "cellio", "{\"Auth\":\"auth\",\"Push\":\"push\",\"Pull\":\"pull\"}")
 
 }

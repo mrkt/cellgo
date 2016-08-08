@@ -37,13 +37,14 @@ var (
 
 type TcpRun struct {
 	TcpName string
-	TcpType int //SOCKET/SOCKETIO/WEBSOCKET/ICMP
+	TcpType int    //SOCKET/SOCKETIO/WEBSOCKET/ICMP
+	TcpConf string //json info
 	Addr    string
 	Route   string
 	Handle  interface{} //conn handle
 }
 
-func RegisterTcp(tcpType int, addr string, route string, tcpName string) error {
+func RegisterTcp(tcpType int, addr string, route string, tcpName string, tcpConf string) error {
 	var (
 		handle interface{}
 		err    error
@@ -56,7 +57,7 @@ func RegisterTcp(tcpType int, addr string, route string, tcpName string) error {
 		if err != nil {
 			return err
 		}
-		Tcp[SOCKETIO] = append(Tcp[SOCKETIO], &TcpRun{TcpName: tcpName, TcpType: tcpType, Addr: addr, Route: route, Handle: handle})
+		Tcp[SOCKETIO] = append(Tcp[SOCKETIO], &TcpRun{TcpName: tcpName, TcpType: tcpType, TcpConf: tcpConf, Addr: addr, Route: route, Handle: handle})
 		break
 	case tcpType == WEBSOCKET:
 		break

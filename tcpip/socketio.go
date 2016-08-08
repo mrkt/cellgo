@@ -21,31 +21,70 @@
 package tcpip
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/googollee/go-socket.io"
 )
 
+type socketConf struct {
+	Conn    string `json:"Conn"`    //Connection function name
+	Disconn string `json:"Disconn"` //Disconnection function name
+	Error   string `json:"Error"`   //Error function name
+	Auth    string `json:"Auth"`    //Auth function name
+	Push    string `json:"Push"`    //Push content function name
+	Pull    string `json:"Pull"`    //Pull content function name
+}
+
 func RunSocketIO() {
 	for _, v := range Tcp[SOCKETIO] {
 		go func(v *TcpRun) {
+			socketConf := &socketConf{}
+			err := json.Unmarshal([]byte(v.TcpConf), socketConf)
+			if err != nil {
+				log.Fatal("socketio [", v.TcpName, "] error:", err)
+			}
+			checkDefault(socketConf)
+
 			server := v.Handle.(*socketio.Server)
-			server.On("connection", func(so socketio.Socket) {
+			server.On(socketConf.Conn, func(so socketio.Socket) {
 				log.Println("on connection")
-				so.On("chat message with ack", func(msg string) string {
+				so.On(socketConf.Pull, func(msg string) string {
 					return msg
 				})
-				so.On("disconnection", func() {
+				so.On(socketConf.Disconn, func() {
 					log.Println("on disconnect")
 				})
 			})
-			server.On("error", func(so socketio.Socket, err error) {
+			server.On(socketConf.Error, func(so socketio.Socket, err error) {
 				log.Println("error:", err)
 			})
 			http.Handle(v.Route, server)
 			log.Println(v.TcpName, "Serving at", v.Addr, "to", v.Route)
-			http.ListenAndServe(v.Addr, nil)
+			log.Fatal(http.ListenAndServe(v.Addr, nil))
 		}(v)
+	}
+}
+
+func checkDefault(s *socketConf) {
+	switch {
+	case s.Conn == "":
+		s.Conn = "connection"
+		fallthrough
+	case s.Disconn == "":
+		s.Disconn = "disconnection"
+		fallthrough
+	case s.Error == "error":
+		s.Error = "error"
+		fallthrough
+	case s.Auth == "":
+		s.Auth = "auth"
+		fallthrough
+	case s.Push == "":
+		s.Push = "push"
+		fallthrough
+	case s.Pull == "":
+		s.Pull = "pull"
 	}
 }
