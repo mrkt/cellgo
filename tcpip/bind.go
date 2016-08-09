@@ -19,3 +19,6 @@
 // Author:Tommy.Jin Dtime:2016-08-08
 
 package tcpip
+
+type bind struct {
+}
