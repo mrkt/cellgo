@@ -20,5 +20,7 @@
 
 package tcpip
 
-type bind struct {
+type Bind struct {
 }
+
+func (b *Bind) BindEvent() {}
