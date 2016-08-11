@@ -31,7 +31,7 @@ type Exchange struct {
 }
 
 //Create a Exchange
-func (e *Exchange) CreateExchange(funcName string) (bool, error) {
+func (e *Exchange) CreateExchange(eventName string, funcName string) (bool, error) {
 	return true, nil
 }
 
