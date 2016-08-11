@@ -27,16 +27,16 @@ type Exchange struct {
 	Queue          map[string]*Queue //Exchange's Queue
 	PushedNum      int64             //Exchange's total push
 	PulledNum      int64             //Exchange's total pull
-	BindFunc       map[string]func(string)
+	BindFunc       map[string]func(string, string, string)
 }
 
 //Create a Exchange
-func (e *Exchange) CreateExchange(eventName string, funcName string) (bool, error) {
+func (e *Exchange) NewExchange(eventName string, controllerName string, funcName string) (bool, error) {
 	return true, nil
 }
 
 //Renew Exchange data
-func (e *Exchange) RenewExchange(style int, value map[string]interface{}) (bool, error) {
+func (e *Exchange) RenewExchange(eventName string, controllerName string, funcName string) (bool, error) {
 	return true, nil
 }
 
