@@ -27,15 +27,11 @@ type Exchange struct {
 	Queue          map[string]*Queue //Exchange's Queue
 	PushedNum      int64             //Exchange's total push
 	PulledNum      int64             //Exchange's total pull
+	BindFunc       map[string]func(string)
 }
 
 //Create a Exchange
-func (e *Exchange) BindEvent(name string, number string) (bool, error) {
-	return true, nil
-}
-
-//Create a Exchange
-func (e *Exchange) CreateExchange(name string, number string) (bool, error) {
+func (e *Exchange) CreateExchange(funcName string) (bool, error) {
 	return true, nil
 }
 
