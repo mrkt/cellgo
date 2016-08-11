@@ -29,7 +29,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mrkt/cellgo/tcpip"
+	ctcpip "github.com/mrkt/cellgo/tcpip"
+	"github.com/mrkt/tcpip"
 )
 
 var Events = make(map[string]*Event)
@@ -229,5 +230,8 @@ func RegisterEvent(name string, waitTime int64) {
 
 // Register TCP from TCP package
 func RegisterTcp(tcpType int, addr string, route string, tcpName string, tcpConf string) {
-	tcpip.RegisterTcp(tcpType, addr, route, tcpName, tcpConf)
+	a_tcp := new(ctcpip.Tcpinter)
+	b_tcp := new(tcpip.Tcpinter)
+	a_tcp.SetB(b_tcp)
+	a_tcp.RegisterTcp(tcpType, addr, route, tcpName, tcpConf)
 }

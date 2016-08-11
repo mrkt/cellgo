@@ -21,7 +21,8 @@
 package cellgo
 
 import (
-	"github.com/mrkt/cellgo/tcpip"
+	ctcpip "github.com/mrkt/cellgo/tcpip"
+	"github.com/mrkt/tcpip"
 )
 
 type Boot struct {
@@ -37,5 +38,8 @@ func (b *Boot) GCEvent() {
 
 //RunTcp Tcp
 func (b *Boot) RunSocketIO() {
-	tcpip.RunSocketIO()
+	a_socketIO := new(ctcpip.SocketIO)
+	b_socketIO := new(tcpip.SocketIO)
+	a_socketIO.SetB(b_socketIO)
+	a_socketIO.RunSocketIO()
 }
