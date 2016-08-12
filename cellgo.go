@@ -30,11 +30,11 @@ var cellShow = string(`
 //|      __/  \         
 //|   __/  \__/_       ♥ ♥ 
 //|  /  \__/    \       Using Golang!
-//| /\__/CellGo /_      -------------   q╭─╮p
-//| \/_/NetFW__/  \                   \ │⊙⊙│ 
-//|   /\__ _/  \__/                     (  ＂  )
-//|   \/_/  \__/_/                      │    │
-//|     /\__/_/                         ()──()   >_
+//| /\__/CellGo /_      -------------  
+//| \/_/NetFW__/  \                   
+//|   /\__ _/  \__/                   
+//|   \/_/  \__/_/                      
+//|     /\__/_/                         
 //|     \/_/                                
 //|------------------------------------------------------------------
 //| Cellgo framework core file has been started
@@ -59,5 +59,4 @@ func powerBoot() {
 	//init Data whit boot
 	bt := Boot{}
 	bt.GCEvent()
-	bt.RunSocketIO()
 }

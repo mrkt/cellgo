@@ -10,7 +10,7 @@
 //|    /\__/_/
 //|    \/_/
 //| ------------------------------------------------------------------
-//| Cellgo Framework tcpip/tcp  file
+//| Cellgo Framework tcpip/queue file
 //| All rights reserved: By cellgo.cn CopyRight
 //| You are free to use the source code, but in the use of the process,
 //| please keep the author information. Respect for the work of others
@@ -21,29 +21,24 @@
 package tcpip
 
 import (
-	"github.com/mrkt/cellgo/interfaces"
+	"errors"
 )
 
-type SocketIO struct {
-	b interfaces.B_SocketIO
+//Queue Operation type
+type Queue struct {
+	FromInfo  interface{} //Queue's enter identification information
+	CarryInfo interface{} //Queue's carrying identification information
+	Pushed    []string    //Queue's pushed log
 }
 
-func (s *SocketIO) SetB(b interfaces.B_SocketIO) {
-	s.b = b
+func (q *Queue) RegQueue(interface{}) (interface{}, error) {
+	return "", errors.New("")
 }
 
-func (s *SocketIO) RunSocketIO() {
-
-}
-
-type Tcpinter struct {
-	b interfaces.B_Tcp
-}
-
-func (t *Tcpinter) SetB(b interfaces.B_Tcp) {
-	t.b = b
-}
-
-func (t *Tcpinter) RegisterTcp(tcpType int, addr string, route string, tcpName string, tcpConf string) error {
+func (q *Queue) IncreasePushed(string) error {
 	return nil
+}
+
+func (q *Queue) DetectPushed(string) (bool, error) {
+	return true, nil
 }
