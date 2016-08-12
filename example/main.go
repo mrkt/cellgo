@@ -10,5 +10,7 @@ func main() {
 	conf.SetController()
 	conf.SetEvent()
 	conf.SetTcp()
+	conf.BindTcp()
+	conf.RunSocketIO()
 	cellgo.Run()
 }
