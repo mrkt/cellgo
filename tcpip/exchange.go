@@ -20,18 +20,62 @@
 
 package tcpip
 
+import (
+	"log"
+	"time"
+)
+
+var (
+	ExchangeMap map[int]*Exchange = make(map[int]*Exchange)
+)
+
+//Create a Exchange
+func CreateExchange(tcpType int) {
+	exchange := &Exchange{
+		Exchanges: make(map[string]*exchanges),
+	}
+newEX:
+	res, _ := exchange.NewExchange(tcpType)
+	if !res {
+		time.Sleep(time.Second * 1)
+		goto newEX
+		log.Println("Try to start Tcp Exchage ...")
+	}
+	ExchangeMap[tcpType] = exchange
+	log.Println("Tcp Exchage has been started.")
+}
+
 //Exchange Operation type
-type Exchange struct {
+type exchanges struct {
 	ExchangeName   string            //Exchange's name
 	ExchangeNumber string            //Exchange's number
 	Queue          map[string]*Queue //Exchange's Queue
-	PushedNum      int64             //Exchange's total push
-	PulledNum      int64             //Exchange's total pull
+	PushedNum      int               //Exchange's total push
+	PulledNum      int               //Exchange's total pull
+}
+
+//Exchange Operation type
+type Exchange struct {
+	Exchanges map[string]*exchanges //Exchange's child
+
 }
 
 //Create a Exchange
-func (e *Exchange) NewExchange(eventName string, controllerName string, funcName string) (bool, error) {
-	//BindExchange[SOCKETIO].BindMaps[]
+func (e *Exchange) NewExchange(tcpType int) (bool, error) {
+	res, err := BindExchange[tcpType].BindMaps["NewExchange"].handler("NewExchange", nil)
+	if err != nil {
+		return false, err
+	}
+	exchange := res.(map[string]string)
+	for k, v := range exchange {
+		e.Exchanges[k] = &exchanges{
+			ExchangeName:   v,
+			ExchangeNumber: k,
+			Queue:          make(map[string]*Queue),
+			PushedNum:      0,
+			PulledNum:      0,
+		}
+	}
 	return true, nil
 }
 

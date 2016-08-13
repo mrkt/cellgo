@@ -107,14 +107,15 @@ func (e *Event) EventRead(title string, act string) (interface{}, error) {
 			break
 		}
 	}
-	if getTitle != "" {
+	if getTitle == "" {
 		return nil, errors.New("Controller that are not defined.")
 	}
 	vc := reflect.New(getType)
 	init := vc.MethodByName("Init")
 	in := make([]reflect.Value, 4)
 	//Assignment parameter
-	in[0] = reflect.ValueOf(nil)
+
+	in[0] = reflect.ValueOf("")
 	in[1] = reflect.ValueOf(getTitle)
 	in[2] = reflect.ValueOf(getParam)
 	in[3] = reflect.ValueOf(getCore)
@@ -130,7 +131,7 @@ func (e *Event) EventRead(title string, act string) (interface{}, error) {
 	method = vc.MethodByName("After")
 	method.Call(in)
 
-	return resEvent, nil
+	return resEvent[0].Interface(), nil
 }
 
 //Destroy Event's happen & happened
@@ -146,24 +147,16 @@ func (e *Event) EventDestroy(title string, hp bool) {
 	}
 }
 
-//If Happe begin time is up to GC
+//If Happe begin time is up to GC (begintime == 0 ∞)
 func (e *Event) EventON() {
 	for {
 		if e.Happen != nil {
 			for k, v := range e.Happen {
-				if v.begin < time.Now().Unix() {
+				if v.begin < time.Now().Unix() || v.begin == int64(0) {
 					e.Happened[k] = v
 					vc := reflect.New(v.controllerType)
-					init := vc.MethodByName("Init")
-					in := make([]reflect.Value, 4)
-					//Assignment parameter with begin
-					in[0] = reflect.ValueOf(nil)
-					in[1] = reflect.ValueOf(v.controllerTitle)
-					in[2] = reflect.ValueOf("Begin") //event on function
-					in[3] = reflect.ValueOf(v.coreData)
-					init.Call(in)
-					in = make([]reflect.Value, 0)
-					method := vc.MethodByName("Begin ")
+					in := make([]reflect.Value, 0)
+					method := vc.MethodByName("Begin")
 					method.Call(in)
 					delete(e.Happen, k)
 				}
@@ -174,23 +167,14 @@ func (e *Event) EventON() {
 	}
 }
 
-//If Happend failure time is up to GC
+//If Happend failure time is up to GC (endtime == 0 ∞)
 func (e *Event) EventGC() {
 	for {
 		if e.Happened != nil {
 			for k, v := range e.Happened {
-				if v.end < time.Now().Unix() {
+				if v.end < time.Now().Unix() && v.end != int64(0) {
 					vc := reflect.New(v.controllerType)
-					init := vc.MethodByName("Init")
-					in := make([]reflect.Value, 4)
-					//Assignment parameter with begin
-					in[0] = reflect.ValueOf(nil)
-					in[1] = reflect.ValueOf(v.controllerTitle)
-					in[2] = reflect.ValueOf("End") //event on function
-					in[3] = reflect.ValueOf(v.coreData)
-					init.Call(in)
-
-					in = make([]reflect.Value, 0)
+					in := make([]reflect.Value, 0)
 					method := vc.MethodByName("End")
 					method.Call(in)
 					delete(e.Happened, k)

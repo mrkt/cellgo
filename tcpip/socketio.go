@@ -22,8 +22,10 @@ package tcpip
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/googollee/go-socket.io"
 )
@@ -37,9 +39,16 @@ type socketConf struct {
 	Pull    string `json:"Pull"`    //Pull content function name
 }
 
+var (
+	initNum int = 1
+)
+
 func RunSocketIO() {
 	for _, v := range Tcp[SOCKETIO] {
 		go func(v *TcpRun) {
+			//CreateExchange
+			CreateExchange(SOCKETIO)
+
 			socketConf := &socketConf{}
 			err := json.Unmarshal([]byte(v.TcpConf), socketConf)
 			if err != nil {
@@ -49,6 +58,17 @@ func RunSocketIO() {
 
 			server := v.Handle.(*socketio.Server)
 			server.On(socketConf.Conn, func(so socketio.Socket) {
+				so.Join("Seckill")
+				if initNum == 1 {
+					go func(so socketio.Socket) {
+						for {
+							so.BroadcastTo("Seckill", "push", "Hello!")
+							time.Sleep(time.Second * 4)
+							fmt.Println("Hello")
+						}
+					}(so)
+					initNum = 0
+				}
 				log.Println("on connection")
 				so.On(socketConf.Pull, func(msg string) string {
 					return msg

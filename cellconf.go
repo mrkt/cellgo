@@ -87,7 +87,7 @@ func init() {
 		Listen: Listen{
 			ServerTimeOut: 0,
 			HTTPAddr:      "",
-			HTTPPort:      80,
+			HTTPPort:      8001,
 			HTTPSAddr:     "",
 			HTTPSPort:     10443,
 			HTTPSCertFile: "",
