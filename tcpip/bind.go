@@ -27,16 +27,18 @@ import (
 //const bindType
 const (
 	NEWEXCHANGE = iota
+	REGQUEUE
+	CHECKQUEUE
+	PUSH
+	PULL
 )
 
 var (
-	BindExchange map[int]*TcpBind = make(map[int]*TcpBind)
-	BindQueue    map[int]*TcpBind = make(map[int]*TcpBind)
+	Bind map[int]*TcpBind = make(map[int]*TcpBind)
 )
 
 func init() {
-	BindExchange[SOCKETIO] = &TcpBind{TcpType: SOCKETIO, BindMaps: make(map[string]*bindInfo, 10)}
-	BindQueue[SOCKETIO] = &TcpBind{TcpType: SOCKETIO, BindMaps: make(map[string]*bindInfo, 10)}
+	Bind[SOCKETIO] = &TcpBind{TcpType: SOCKETIO, BindMaps: make(map[string]*bindInfo, 10)}
 }
 
 // TcpBind type.
@@ -61,7 +63,27 @@ func (tb *TcpBind) RegisterHandlers(bindType int, eventName string, controllerNa
 	switch bindType {
 	case NEWEXCHANGE:
 		m = map[string]func(string, interface{}) (interface{}, error){
-			"NewExchange": tb.NewExchange,
+			"New": tb.Dispatch,
+		}
+		break
+	case REGQUEUE:
+		m = map[string]func(string, interface{}) (interface{}, error){
+			"Reg": tb.Dispatch,
+		}
+		break
+	case CHECKQUEUE:
+		m = map[string]func(string, interface{}) (interface{}, error){
+			"Check": tb.Dispatch,
+		}
+		break
+	case PUSH:
+		m = map[string]func(string, interface{}) (interface{}, error){
+			"Push": tb.Dispatch,
+		}
+		break
+	case PULL:
+		m = map[string]func(string, interface{}) (interface{}, error){
+			"Pull": tb.Dispatch,
 		}
 		break
 	default:
@@ -85,7 +107,7 @@ func (tb *TcpBind) ExchangeHandler(code string, h func(string, interface{}) (int
 	}
 }
 
-func (tb *TcpBind) NewExchange(code string, value interface{}) (interface{}, error) {
+func (tb *TcpBind) Dispatch(code string, value interface{}) (interface{}, error) {
 	res, err := cellgo.Events[tb.BindMaps[code].eventName].EventRead(tb.BindMaps[code].controllerName, tb.BindMaps[code].funcName)
 	if err != nil {
 		return nil, err

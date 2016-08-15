@@ -48,6 +48,7 @@ func RunSocketIO() {
 		go func(v *TcpRun) {
 			//CreateExchange
 			CreateExchange(SOCKETIO)
+			//fmt.Println(ExchangeMap[SOCKETIO].Exchanges["2"].ExchangeName)
 
 			socketConf := &socketConf{}
 			err := json.Unmarshal([]byte(v.TcpConf), socketConf)

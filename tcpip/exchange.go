@@ -62,7 +62,7 @@ type Exchange struct {
 
 //Create a Exchange
 func (e *Exchange) NewExchange(tcpType int) (bool, error) {
-	res, err := BindExchange[tcpType].BindMaps["NewExchange"].handler("NewExchange", nil)
+	res, err := Bind[tcpType].BindMaps["New"].handler("New", nil)
 	if err != nil {
 		return false, err
 	}

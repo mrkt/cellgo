@@ -10,7 +10,7 @@ func SetTcp() {
 }
 
 func BindTcp() {
-	tcpip.BindExchange[1].RegisterHandlers(0, "event2", "EventCreate", "Run")
+	tcpip.Bind[1].RegisterHandlers(0, "event2", "EventCreate", "Run")
 }
 
 //RunTcp Tcp
