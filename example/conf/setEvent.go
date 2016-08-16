@@ -10,5 +10,5 @@ func SetEvent() {
 	cellgo.RegisterEvent("event1", 1)
 	cellgo.RegisterEvent("event2", 1)
 	//Add Event's happen
-	cellgo.Events["event2"].EventAdd("EventCreate", &controllers.EventCreateController{}, []string{"Run"}, int64(0), int64(0), 1)
+	cellgo.Events["event2"].EventAdd("EventStatic", &controllers.EventStaticController{}, []string{"Run", "Reg", "Check", "Pull"}, int64(0), int64(0), 1)
 }
