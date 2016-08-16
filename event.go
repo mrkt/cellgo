@@ -85,7 +85,7 @@ func (e *Event) OnlyId() (string, error) {
 }
 
 //Call the begin happen's controller and execute its function
-func (e *Event) EventRead(title string, act string) (interface{}, error) {
+func (e *Event) EventRead(title string, act string, value interface{}) (interface{}, error) {
 
 	var getTitle string
 	var getType reflect.Type
@@ -125,9 +125,14 @@ func (e *Event) EventRead(title string, act string) (interface{}, error) {
 	method := vc.MethodByName("Before")
 	method.Call(in)
 
+	if value != nil {
+		in = make([]reflect.Value, 1)
+		in[0] = reflect.ValueOf(value)
+	}
 	method = vc.MethodByName(getParam)
 	resEvent := method.Call(in)
 
+	in = make([]reflect.Value, 0)
 	method = vc.MethodByName("After")
 	method.Call(in)
 
