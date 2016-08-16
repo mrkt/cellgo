@@ -21,6 +21,8 @@
 package tcpip
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"time"
 )
@@ -92,4 +94,18 @@ func (e *Exchange) DestroyExchange(number string) (bool, error) {
 //Allow an Queue to enter the Exchange
 func (e *Exchange) IncreaseQueue(queue *Queue, carryInfo string) (bool, error) {
 	return true, nil
+}
+
+func (e *exchanges) PushQueue(tcpType int, value interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (e *exchanges) PullQueue(tcpType int, value interface{}) (interface{}, error) {
+	res, err := Bind[tcpType].BindMaps["Pull"].handler("Pull", value)
+	if err != nil {
+		return false, err
+	}
+	info := res.(string)
+	fmt.Println(info)
+	return "", errors.New("")
 }

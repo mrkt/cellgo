@@ -22,16 +22,41 @@ package tcpip
 
 import (
 	"errors"
+	"fmt"
 )
+
+var (
+	Queues *Queue
+)
+
+func init() {
+	Queues = &Queue{}
+}
 
 //Queue Operation type
 type Queue struct {
 	FromInfo  interface{} //Queue's enter identification information
 	CarryInfo interface{} //Queue's carrying identification information
-	Pushed    []string    //Queue's pushed log
+	Pushed    []string    //Queue's p ushed log
 }
 
-func (q *Queue) RegQueue(interface{}) (interface{}, error) {
+func (q *Queue) RegQueue(tcpType int, value interface{}) (interface{}, error) {
+	res, err := Bind[tcpType].BindMaps["Reg"].handler("Reg", value)
+	if err != nil {
+		return false, err
+	}
+	info := res.(map[string]string)
+	fmt.Println(info)
+	return "", errors.New("")
+}
+
+func (q *Queue) CheckQueue(tcpType int, value interface{}) (interface{}, error) {
+	res, err := Bind[tcpType].BindMaps["Check"].handler("Check", value)
+	if err != nil {
+		return false, err
+	}
+	info := res.(map[string]string)
+	fmt.Println(info)
 	return "", errors.New("")
 }
 

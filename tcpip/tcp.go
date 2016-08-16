@@ -73,15 +73,13 @@ func RegisterTcp(tcpType int, addr string, route string, tcpName string, tcpConf
 
 //Exchange interface
 type TcpExchange interface {
-	NewExchange(string, string, string) (bool, error)                 //Create a Exchange
-	RenewExchange(string, string, string) (bool, error)               //Renew Exchange data
-	DestroyExchange(number string) (bool, error)                      //Destroy a Exchange
-	IncreaseQueue(tcpQueue *TcpQueue, carryInfo string) (bool, error) //Allow an Queue to enter the Exchange
+	NewExchange(int) (bool, error)              //Create a Exchange
+	Push(int, interface{}) (interface{}, error) //Push a Queue
+	Pull(int, interface{}) (interface{}, error) //Pull a Queue
 }
 
 //Queue interface
 type TcpQueue interface {
-	RegQueue(interface{}) (interface{}, error) //Register a Queue
-	IncreasePushed(string) error               //Increase Queue record
-	DetectPushed(string) (bool, error)         //Detecting Queue record
+	RegQueue(int, interface{}) (interface{}, error)   //Register a Queue
+	CheckQueue(int, interface{}) (interface{}, error) //Check a Queue
 }

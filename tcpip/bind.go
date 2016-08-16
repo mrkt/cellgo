@@ -108,7 +108,7 @@ func (tb *TcpBind) ExchangeHandler(code string, h func(string, interface{}) (int
 }
 
 func (tb *TcpBind) Dispatch(code string, value interface{}) (interface{}, error) {
-	res, err := cellgo.Events[tb.BindMaps[code].eventName].EventRead(tb.BindMaps[code].controllerName, tb.BindMaps[code].funcName)
+	res, err := cellgo.Events[tb.BindMaps[code].eventName].EventRead(tb.BindMaps[code].controllerName, tb.BindMaps[code].funcName, value)
 	if err != nil {
 		return nil, err
 	}

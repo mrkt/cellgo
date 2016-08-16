@@ -49,6 +49,9 @@ func RunSocketIO() {
 			//CreateExchange
 			CreateExchange(SOCKETIO)
 			//fmt.Println(ExchangeMap[SOCKETIO].Exchanges["2"].ExchangeName)
+			Queues.RegQueue(SOCKETIO, "3267")
+			Queues.CheckQueue(SOCKETIO, "326700")
+			ExchangeMap[SOCKETIO].Exchanges["4"].PullQueue(SOCKETIO, "4")
 
 			socketConf := &socketConf{}
 			err := json.Unmarshal([]byte(v.TcpConf), socketConf)
