@@ -21,6 +21,7 @@
 package tcpip
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -36,7 +37,7 @@ func init() {
 //Queue Operation type
 type Queue struct {
 	FromInfo  interface{} //Queue's enter identification information
-	CarryInfo interface{} //Queue's carrying identification information
+	CarryInfo string      //Queue's carrying identification information
 	Pushed    []string    //Queue's p ushed log
 }
 
@@ -46,7 +47,15 @@ func (q *Queue) RegQueue(tcpType int, value interface{}) (interface{}, error) {
 		return false, err
 	}
 	info := res.(map[string]string)
-	fmt.Println(info)
+	if info == nil {
+		return false, errors.New("The Date is not found.")
+	}
+	q.FromInfo = value
+	q.CarryInfo = info["CarryInfo"]
+	err = json.Unmarshal([]byte(info["Pushed"]), q.Pushed)
+	if err != nil {
+		return false, err
+	}
 	return "", errors.New("")
 }
 

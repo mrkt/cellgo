@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/googollee/go-socket.io"
+	"github.com/mrkt/cellgo/tool"
 )
 
 type socketConf struct {
@@ -37,10 +38,21 @@ type socketConf struct {
 	Auth    string `json:"Auth"`    //Auth function name
 	Push    string `json:"Push"`    //Push content function name
 	Pull    string `json:"Pull"`    //Pull content function name
+	Check   string `json:"Check"`   //Check content function name
+}
+
+type from struct {
+	carryInfo string `json:"Carry"` //Connection function name
+	value     string `json:"Vlaue"` //Disconnection function name
+}
+
+type back struct {
+	state   int    `json:"State"`   //Connection function name
+	massage string `json:"Massage"` //Disconnection function name
 }
 
 var (
-	initNum int = 1
+	initBool bool = true
 )
 
 func RunSocketIO() {
@@ -49,9 +61,9 @@ func RunSocketIO() {
 			//CreateExchange
 			CreateExchange(SOCKETIO)
 			//fmt.Println(ExchangeMap[SOCKETIO].Exchanges["2"].ExchangeName)
-			Queues.RegQueue(SOCKETIO, "3267")
-			Queues.CheckQueue(SOCKETIO, "326700")
-			ExchangeMap[SOCKETIO].Exchanges["4"].PullQueue(SOCKETIO, "4")
+			Queues.RegQueue(SOCKETIO, "42")
+			//Queues.CheckQueue(SOCKETIO, "326700")
+			//ExchangeMap[SOCKETIO].Exchanges["4"].PullQueue(SOCKETIO, "4")
 
 			socketConf := &socketConf{}
 			err := json.Unmarshal([]byte(v.TcpConf), socketConf)
@@ -62,8 +74,8 @@ func RunSocketIO() {
 
 			server := v.Handle.(*socketio.Server)
 			server.On(socketConf.Conn, func(so socketio.Socket) {
-				so.Join("Seckill")
-				if initNum == 1 {
+				//so.Join("Seckill")
+				if initBool == true {
 					go func(so socketio.Socket) {
 						for {
 							so.BroadcastTo("Seckill", "push", "Hello!")
@@ -71,9 +83,19 @@ func RunSocketIO() {
 							fmt.Println("Hello")
 						}
 					}(so)
-					initNum = 0
+					initBool = false
 				}
-				log.Println("on connection")
+				//log.Println("on connection")
+				so.On(socketConf.Check, func(msg string) string {
+					res, err := Queues.RegQueue(SOCKETIO, msg)
+					if err != nil {
+						callback, _ := callback(0, err.Error())
+						return callback
+					}
+					callback, _ := callback(1, res.(string))
+					return callback
+				})
+
 				so.On(socketConf.Pull, func(msg string) string {
 					return msg
 				})
@@ -110,5 +132,16 @@ func checkDefault(s *socketConf) {
 		fallthrough
 	case s.Pull == "":
 		s.Pull = "pull"
+	case s.Check == "":
+		s.Check = "check"
 	}
+}
+
+func callback(state int, message string) (string, error) {
+	callback := back{state, message}
+	res, err := tool.Json.Encode(callback)
+	if err != nil {
+		return "", err
+	}
+	return string(res), nil
 }
