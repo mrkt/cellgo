@@ -44,7 +44,7 @@ newEX:
 		log.Println("Try to start Tcp Exchage ...")
 	}
 	ExchangeMap[tcpType] = exchange
-	log.Println("Tcp Exchage has been started.")
+	log.Println("Tcp Exchange has been started.")
 }
 
 //Exchange Operation type
@@ -97,7 +97,12 @@ func (e *Exchange) IncreaseQueue(queue *Queue, carryInfo string) (bool, error) {
 }
 
 func (e *exchanges) PushQueue(tcpType int, value interface{}) (interface{}, error) {
-	return nil, nil
+	fmt.Println(2)
+	res, err := Bind[tcpType].BindMaps["Push"].handler("Push", value)
+	if err != nil {
+		return false, err
+	}
+	return res, nil
 }
 
 func (e *exchanges) PullQueue(tcpType int, value interface{}) (interface{}, error) {

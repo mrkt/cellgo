@@ -46,17 +46,29 @@ func (q *Queue) RegQueue(tcpType int, value interface{}) (interface{}, error) {
 	if err != nil {
 		return false, err
 	}
-	info := res.(map[string]string)
-	if info == nil {
-		return false, errors.New("The Date is not found.")
+	if res == nil {
+		return false, errors.New("The Data is not found.")
 	}
+	info := res.(map[string]string)
 	q.FromInfo = value
 	q.CarryInfo = info["CarryInfo"]
-	err = json.Unmarshal([]byte(info["Pushed"]), q.Pushed)
-	if err != nil {
-		return false, err
+	var pushed []string
+	if info["Pushed"] != "" {
+
+		err = json.Unmarshal([]byte(info["Pushed"]), &pushed)
+		if err != nil {
+			fmt.Println(2)
+			return false, err
+		}
+		q.Pushed = pushed
 	}
-	return "", errors.New("")
+	if ExchangeMap[SOCKETIO].Exchanges[info["Exchange"]].Queue[info["FromInfo"]] == nil {
+		ExchangeMap[SOCKETIO].Exchanges[info["Exchange"]].Queue[info["FromInfo"]] = q
+	}
+	var result = make(map[string]string)
+	result["json"] = "{\"Carry\":\"" + info["CarryInfo"] + "\"}"
+	result["exchange"] = info["Exchange"]
+	return result, nil
 }
 
 func (q *Queue) CheckQueue(tcpType int, value interface{}) (interface{}, error) {
@@ -64,9 +76,12 @@ func (q *Queue) CheckQueue(tcpType int, value interface{}) (interface{}, error) 
 	if err != nil {
 		return false, err
 	}
+	if res == nil {
+		return false, errors.New("The Data is not found.")
+	}
 	info := res.(map[string]string)
-	fmt.Println(info)
-	return "", errors.New("")
+	res = "{\"FromInfo\":\"" + info["FromInfo"] + "\",\"Exchange\":\"" + info["Exchange"] + "\"}"
+	return res, nil
 }
 
 func (q *Queue) IncreasePushed(string) error {
