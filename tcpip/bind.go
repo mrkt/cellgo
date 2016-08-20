@@ -22,7 +22,6 @@ package tcpip
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/mrkt/cellgo"
 )
@@ -121,13 +120,10 @@ func (tb *TcpBind) Happen(code string, value interface{}) (interface{}, error) {
 
 //Perform binding event batch Happens
 func (tb *TcpBind) BatchHappens(code string, value interface{}) (interface{}, error) {
-	fmt.Println(3)
 	happens, err := tb.findHappen(code)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println(happens)
 	var res map[string]map[string]string = make(map[string]map[string]string)
 	for _, v := range happens {
 		hs, err := tb.happens(code, v, value)

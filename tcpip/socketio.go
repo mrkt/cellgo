@@ -22,9 +22,10 @@ package tcpip
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"log"
 	"net/http"
+
 	"time"
 
 	"github.com/googollee/go-socket.io"
@@ -41,13 +42,13 @@ type socketConf struct {
 }
 
 type from struct {
-	carryInfo string `json:"Carry"` //Connection function name
-	value     string `json:"Vlaue"` //Disconnection function name
+	Carry string `json:"Carry"` //Connection function name
+	Value string `json:"Value"` //Disconnection function name
 }
 
 type back struct {
 	State   int    `json:"State"`   //Connection function name
-	Massage string `json:"Massage"` //Disconnection function name
+	Message string `json:"Message"` //Disconnection function name
 }
 
 var (
@@ -78,24 +79,22 @@ func RunSocketIO() {
 					go func(so socketio.Socket) {
 						for {
 							//Exchange push
-							fmt.Println(1)
-							res, err := ExchangeMap[SOCKETIO].Exchanges["2"].PushQueue(SOCKETIO, "")
-							if err == nil {
-								push := res.(map[string]map[string]string)
-								for _, hp := range push {
-									for k, p := range hp {
-										so.BroadcastTo(k, "push", p)
+							for k, v := range ExchangeMap[SOCKETIO].Exchanges {
+								res, err := v.PushQueue(SOCKETIO, "")
+								if err == nil {
+									for _, vr := range res.([]string) {
+										callback := "{\"State\":\"1\",\"Message\":" + vr + "}"
+										so.BroadcastTo(k, "push", callback)
+
 									}
 								}
 							}
-							//so.BroadcastTo("2", "push", "Hello!")
-							time.Sleep(time.Second * 10)
-							//fmt.Println("Hello")
+							time.Sleep(time.Second * 1) //stop 1 sec check)
 						}
 					}(so)
 					initBool = false
 				}
-				log.Println("on connection")
+				//log.Println("on connection")
 				so.On(socketConf.Check, func(msg string) string {
 					res, err := Queues.RegQueue(SOCKETIO, msg)
 					if err != nil {
@@ -103,33 +102,40 @@ func RunSocketIO() {
 						return callback
 					}
 					result := res.(map[string]string)
-					callback, _ := callback(1, result["json"])
-					fmt.Println(callback)
+					//callback, _ := callback(1, result["json"])
+					callback := "{\"State\":\"1\",\"Message\":" + result["json"] + "}"
 					so.Join(result["exchange"])
 					return callback
 
 				})
 
 				so.On(socketConf.Pull, func(msg string) string {
+					//Decomposition message
+					fromInfo := &from{}
+					err = json.Unmarshal([]byte(msg), fromInfo)
+					if err != nil {
+						callback, _ := callback(0, errors.New("The Data is error.").Error())
+						return callback
+					}
 					//Exchange pull
-					res, err := Queues.CheckQueue(SOCKETIO, msg)
+					res, err := Queues.CheckQueue(SOCKETIO, fromInfo.Carry)
 					if err != nil {
 						callback, _ := callback(0, err.Error())
 						return callback
 					}
-					callback, _ := callback(1, res.(string))
-					return callback
+					info := res.(map[string]string)
+					info["Value"] = fromInfo.Value
+					resPull, errPull := ExchangeMap[SOCKETIO].Exchanges[info["Exchange"]].PullQueue(SOCKETIO, info)
+					if errPull != nil {
+						callback, _ := callback(0, err.Error())
+						return callback
+					}
+					callback, _ := callback(1, resPull.(string))
 
-					/*res, err := Queues.CheckQueue(SOCKETIO, msg)
-					if err != nil {
-						callback, _ := callback(0, err.Error())
-						return callback
-					}
-					callback, _ := callback(1, res.(string))
-					return callback*/
+					return callback
 				})
 				so.On(socketConf.Disconn, func() {
-					log.Println("on disconnect")
+					//log.Println("on disconnect")
 				})
 			})
 			server.On(socketConf.Error, func(so socketio.Socket, err error) {

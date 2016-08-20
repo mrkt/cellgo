@@ -22,7 +22,6 @@ package tcpip
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"time"
 )
@@ -54,6 +53,7 @@ type exchanges struct {
 	Queue          map[string]*Queue //Exchange's Queue
 	PushedNum      int               //Exchange's total push
 	PulledNum      int               //Exchange's total pull
+	Pushed         map[string]bool   //Exchange's total pulled
 }
 
 //Exchange Operation type
@@ -76,6 +76,7 @@ func (e *Exchange) NewExchange(tcpType int) (bool, error) {
 			Queue:          make(map[string]*Queue),
 			PushedNum:      0,
 			PulledNum:      0,
+			Pushed:         make(map[string]bool),
 		}
 	}
 	return true, nil
@@ -97,20 +98,32 @@ func (e *Exchange) IncreaseQueue(queue *Queue, carryInfo string) (bool, error) {
 }
 
 func (e *exchanges) PushQueue(tcpType int, value interface{}) (interface{}, error) {
-	fmt.Println(2)
 	res, err := Bind[tcpType].BindMaps["Push"].handler("Push", value)
 	if err != nil {
 		return false, err
 	}
-	return res, nil
+	//exchange Re assembly
+	var result []string
+	push := res.(map[string]map[string]string)
+	for hk, hp := range push {
+		for k, p := range hp {
+			if !e.Pushed[hk] {
+				if e.ExchangeNumber == k {
+					result = append(result, p)
+					e.PushedNum++
+				}
+			}
+		}
+		e.Pushed[hk] = true
+	}
+	return result, nil
 }
 
 func (e *exchanges) PullQueue(tcpType int, value interface{}) (interface{}, error) {
 	res, err := Bind[tcpType].BindMaps["Pull"].handler("Pull", value)
 	if err != nil {
-		return false, err
+		return false, errors.New("The Data is error.")
 	}
-	info := res.(string)
-	fmt.Println(info)
-	return "", errors.New("")
+	e.PulledNum++
+	return res, nil
 }
