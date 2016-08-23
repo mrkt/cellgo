@@ -53,7 +53,7 @@ func (h *happen) Delete(key interface{}) {
 
 //Event type
 type Event struct {
-	lock     sync.Mutex
+	lock     *sync.Mutex
 	Happen   map[string]*happen
 	Happened map[string]*happen
 	waitTime int64
@@ -86,7 +86,8 @@ func (e *Event) OnlyId() (string, error) {
 
 //Call the begin happen's controller and execute its function
 func (e *Event) EventRead(title string, act string, value interface{}) (interface{}, error) {
-
+	e.lock.Lock()
+	defer e.lock.Unlock()
 	var getTitle string
 	var getType reflect.Type
 	var getParam string
@@ -157,10 +158,20 @@ func (e *Event) EventON() {
 	for {
 		if e.Happen != nil {
 			for k, v := range e.Happen {
-				if v.begin < time.Now().Unix() || v.begin == int64(0) {
+				if (v.begin < time.Now().Unix() && v.end > time.Now().Unix()) || v.begin == int64(0) {
 					e.Happened[k] = v
 					vc := reflect.New(v.controllerType)
-					in := make([]reflect.Value, 0)
+					init := vc.MethodByName("Init")
+					in := make([]reflect.Value, 4)
+					//Assignment parameter
+
+					in[0] = reflect.ValueOf("")
+					in[1] = reflect.ValueOf(v.controllerTitle)
+					in[2] = reflect.ValueOf("Begin")
+					in[3] = reflect.ValueOf(v.coreData)
+					init.Call(in)
+
+					in = make([]reflect.Value, 0)
 					method := vc.MethodByName("Begin")
 					method.Call(in)
 					delete(e.Happen, k)
@@ -179,7 +190,17 @@ func (e *Event) EventGC() {
 			for k, v := range e.Happened {
 				if v.end < time.Now().Unix() && v.end != int64(0) {
 					vc := reflect.New(v.controllerType)
-					in := make([]reflect.Value, 0)
+					init := vc.MethodByName("Init")
+					in := make([]reflect.Value, 4)
+					//Assignment parameter
+
+					in[0] = reflect.ValueOf("")
+					in[1] = reflect.ValueOf(v.controllerTitle)
+					in[2] = reflect.ValueOf("End")
+					in[3] = reflect.ValueOf(v.coreData)
+					init.Call(in)
+
+					in = make([]reflect.Value, 0)
 					method := vc.MethodByName("End")
 					method.Call(in)
 					delete(e.Happened, k)
@@ -209,7 +230,7 @@ func RegisterEvent(name string, waitTime int64) {
 	if Events[name] != nil {
 		panic("Event: Register Events not nil")
 	}
-	event := &Event{}
+	event := &Event{lock: &sync.Mutex{}}
 	event.EventInit(waitTime)
 	Events[name] = event
 }
