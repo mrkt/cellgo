@@ -121,9 +121,13 @@ func (e *exchanges) PushQueue(tcpType int, value interface{}) (interface{}, erro
 
 func (e *exchanges) PullQueue(tcpType int, value interface{}) (interface{}, error) {
 	res, err := Bind[tcpType].BindMaps["Pull"].handler("Pull", value)
-	if err != nil {
+	if err != nil || res == nil {
 		return false, errors.New("The Data is error.")
 	}
+	pullInfo := res.(map[string]string)
+	if e.Queue[pullInfo["FromInfo"]] != nil {
+		e.Queue[pullInfo["FromInfo"]].Pushed[pullInfo["PushId"]] = true
+	}
 	e.PulledNum++
-	return res, nil
+	return pullInfo["Message"], nil
 }
