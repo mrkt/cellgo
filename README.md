@@ -1,7 +1,7 @@
 # CellGo
 ==========
  ![image](https://raw.githubusercontent.com/mrkt/cellgo/master/pic/logo.png)
-细胞/CellGo框架是一款使用go语言开发的框架 （轻量级的Go Framework) 版本0.23
+细胞/CellGo框架是一款使用go语言开发的框架 （轻量级的Go Framework)  版本0.23
 
 [![Build Status](https://drone.io/github.com/mrkt/cellgo/status.png?r)](https://drone.io/github.com/mrkt/cellgo/latest)
 [![Go Walker](http://gowalker.org/api/v1/badge?r)](http://gowalker.org/github.com/mrkt/cellgo)
